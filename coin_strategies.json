@@ -1,0 +1,392 @@
+{
+  "BTC": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00541,
+    "sl_pct_max": 0.01623,
+    "tp_pct_min": 0.00866,
+    "tp_pct_max": 0.03246,
+    "harvest_threshold": 0.01582,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "ETH": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00728,
+    "sl_pct_max": 0.02183,
+    "tp_pct_min": 0.01164,
+    "tp_pct_max": 0.04366,
+    "harvest_threshold": 0.01955,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "SOL": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.0086,
+    "sl_pct_max": 0.0258,
+    "tp_pct_min": 0.01376,
+    "tp_pct_max": 0.0516,
+    "harvest_threshold": 0.0222,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "AVAX": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00969,
+    "sl_pct_max": 0.02907,
+    "tp_pct_min": 0.0155,
+    "tp_pct_max": 0.05814,
+    "harvest_threshold": 0.02438,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "BNB": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "ADA": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.01209,
+    "sl_pct_max": 0.03626,
+    "tp_pct_min": 0.01934,
+    "tp_pct_max": 0.07251,
+    "harvest_threshold": 0.02917,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "DOT": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00963,
+    "sl_pct_max": 0.02889,
+    "tp_pct_min": 0.01541,
+    "tp_pct_max": 0.05778,
+    "harvest_threshold": 0.02426,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "XRP": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00754,
+    "sl_pct_max": 0.0098,
+    "tp_pct_min": 0.01206,
+    "tp_pct_max": 0.04524,
+    "harvest_threshold": 0.02008,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "LINK": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00815,
+    "sl_pct_max": 0.02445,
+    "tp_pct_min": 0.01304,
+    "tp_pct_max": 0.04889,
+    "harvest_threshold": 0.0213,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "LTC": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00749,
+    "sl_pct_max": 0.02247,
+    "tp_pct_min": 0.01198,
+    "tp_pct_max": 0.04494,
+    "harvest_threshold": 0.01998,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "BCH": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.01037,
+    "sl_pct_max": 0.01348,
+    "tp_pct_min": 0.01659,
+    "tp_pct_max": 0.06222,
+    "harvest_threshold": 0.02574,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "ATOM": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "NEAR": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "ALGO": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "FIL": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.01134,
+    "sl_pct_max": 0.03403,
+    "tp_pct_min": 0.01815,
+    "tp_pct_max": 0.06807,
+    "harvest_threshold": 0.02769,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "XLM": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "TRX": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "MATIC": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "ARB": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.0101,
+    "sl_pct_max": 0.03029,
+    "tp_pct_min": 0.01615,
+    "tp_pct_max": 0.06057,
+    "harvest_threshold": 0.02519,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "OP": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "UNI": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00793,
+    "sl_pct_max": 0.0238,
+    "tp_pct_min": 0.01269,
+    "tp_pct_max": 0.0476,
+    "harvest_threshold": 0.02087,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "AAVE": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.01026,
+    "sl_pct_max": 0.03078,
+    "tp_pct_min": 0.01642,
+    "tp_pct_max": 0.06156,
+    "harvest_threshold": 0.02552,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "SUSHI": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.01283,
+    "sl_pct_max": 0.0385,
+    "tp_pct_min": 0.02053,
+    "tp_pct_max": 0.077,
+    "harvest_threshold": 0.03067,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "CRV": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.01311,
+    "sl_pct_max": 0.03933,
+    "tp_pct_min": 0.02097,
+    "tp_pct_max": 0.07865,
+    "harvest_threshold": 0.03122,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "MKR": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "GRT": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00858,
+    "sl_pct_max": 0.02574,
+    "tp_pct_min": 0.01373,
+    "tp_pct_max": 0.05148,
+    "harvest_threshold": 0.02216,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "SUI": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "APT": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "INJ": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "RUNE": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "FTM": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "YFI": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00852,
+    "sl_pct_max": 0.02557,
+    "tp_pct_min": 0.01364,
+    "tp_pct_max": 0.05114,
+    "harvest_threshold": 0.02205,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "DOGE": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00757,
+    "sl_pct_max": 0.0227,
+    "tp_pct_min": 0.0121,
+    "tp_pct_max": 0.04539,
+    "harvest_threshold": 0.02013,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "SHIB": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00749,
+    "sl_pct_max": 0.02248,
+    "tp_pct_min": 0.01199,
+    "tp_pct_max": 0.04497,
+    "harvest_threshold": 0.01999,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "PEPE": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.01074,
+    "sl_pct_max": 0.03223,
+    "tp_pct_min": 0.01719,
+    "tp_pct_max": 0.06446,
+    "harvest_threshold": 0.02649,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "BONK": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.00947,
+    "sl_pct_max": 0.02841,
+    "tp_pct_min": 0.01515,
+    "tp_pct_max": 0.05682,
+    "harvest_threshold": 0.02394,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "FLOKI": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.015,
+    "min_hold_seconds": 5,
+    "dip_threshold": 55
+  },
+  "WIF": {
+    "scalp_gate": 14,
+    "sl_pct_min": 0.01175,
+    "sl_pct_max": 0.03524,
+    "tp_pct_min": 0.01879,
+    "tp_pct_max": 0.07048,
+    "harvest_threshold": 0.02849,
+    "min_hold_seconds": 15,
+    "dip_threshold": 60
+  },
+  "ANDX1": {
+    "scalp_gate": 10,
+    "sl_pct_min": 0.005,
+    "sl_pct_max": 0.015,
+    "tp_pct_min": 0.008,
+    "tp_pct_max": 0.03,
+    "harvest_threshold": 0.01,
+    "min_hold_seconds": 3,
+    "dip_threshold": 55
+  }
+}

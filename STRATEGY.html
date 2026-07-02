@@ -1,0 +1,552 @@
+<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<title>CryptoBot — Trading Strategy</title>
+<style>
+@page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.45;
+  color: #1f2937;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+h1 {
+  font-size: 22pt;
+  color: #0f172a;
+  border-bottom: 3px solid #f59e0b;
+  padding-bottom: 6px;
+  margin-top: 0;
+  page-break-after: avoid;
+}
+h2 {
+  font-size: 16pt;
+  color: #0f172a;
+  margin-top: 26px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 4px;
+  page-break-after: avoid;
+}
+h3 {
+  font-size: 13pt;
+  color: #1f2937;
+  margin-top: 18px;
+  page-break-after: avoid;
+}
+p, ul, ol, table { page-break-inside: avoid; }
+ul, ol { padding-left: 22px; }
+li { margin: 2px 0; }
+code {
+  font-family: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+  font-size: 10pt;
+  background: #f1f5f9;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #b91c1c;
+}
+pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 9.5pt;
+  line-height: 1.4;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+  font-size: 10pt;
+}
+th, td {
+  border: 1px solid #e5e7eb;
+  padding: 6px 9px;
+  text-align: left;
+}
+th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #0f172a;
+}
+tr:nth-child(even) td { background: #fafafa; }
+hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 18px 0;
+}
+strong { color: #0f172a; }
+blockquote {
+  border-left: 3px solid #f59e0b;
+  padding: 4px 12px;
+  margin: 10px 0;
+  color: #475569;
+  background: #fffbeb;
+}
+.header-meta {
+  color: #6b7280;
+  font-size: 10pt;
+  margin-bottom: 18px;
+}
+</style>
+</head><body>
+<div class="header-meta">Generated from STRATEGY.md · CryptoBot — 24/7 crypto scalper</div>
+<h1 id="cryptobot-trading-strategy">CryptoBot — Trading Strategy</h1>
+<p>A 24/7 systematic crypto scalper I built around a 4-layer decision brain,
+per-coin tuned parameters, and dip-aware entries. Long-only on live (andX),
+full long/short on the parallel sim.</p>
+<hr />
+<h2 id="philosophy">Philosophy</h2>
+<p>This is a <strong>systematic scalper</strong>, not discretionary. Every decision —
+when to enter, how much to size, when to exit — comes out of a deterministic
+pipeline:</p>
+<ol>
+<li>Scan the universe every 1–8s (depends on the active risk mode).</li>
+<li>Score each candidate with 24 indicators + an ML ensemble.</li>
+<li>Filter through the active mode's gate and the per-coin tier.</li>
+<li>Size via Kelly + risk-parity, hard-capped by the mode's max position %.</li>
+<li>Execute through andX (BTC/ETH/ANDX1 via the documented HMAC API) and
+   in parallel through sim (full ~30-coin universe on Alpaca data).</li>
+<li>Manage every open position every 1s — SL / TP / trail / harvest /
+   fade / dump / emergency.</li>
+</ol>
+<p>The whole system is <strong>fee-aware</strong> and <strong>per-coin tuned</strong>. No one-size-fits-all
+parameters. BTC harvest is +1.6%; PEPE harvest is +2.7%. Same formula,
+different ATR.</p>
+<hr />
+<h2 id="the-4-layer-brain">The 4-Layer Brain</h2>
+<h3 id="layer-1-signal-analysispy-indicators_propy">Layer 1 — Signal (analysis.py + indicators_pro.py)</h3>
+<p>16 classic technical indicators plus 3 pro indicators. Each indicator outputs
+a directional score; the weighted sum is the <strong>scalp_score</strong> (0–100).</p>
+<h3 id="layer-2-ml-brain-ml_enginepy-ml_ensemblepy">Layer 2 — ML brain (ml_engine.py + ml_ensemble.py)</h3>
+<p>XGBoost + LightGBM ensemble, calibrated to honest win-probability via
+isotonic regression. Trained on 2000+ historical trades. Walk-forward
+cross-validation, AUC ~0.81. Feeds Kelly sizing.</p>
+<h3 id="layer-3-sizing-kelly_sizingpy">Layer 3 — Sizing (kelly_sizing.py)</h3>
+<p>Kelly criterion on the calibrated probability, multiplied by risk-parity
+(inverse-ATR), then by a sector-concentration penalty and a conviction
+multiplier. Always respects <code>max_single_position_pct</code> (mode hard cap —
+e.g. 10% for AGGRESSIVE).</p>
+<h3 id="layer-4-execution-apppy">Layer 4 — Execution (app.py)</h3>
+<p>Layers a market-regime + goal <code>size_boost</code> on top of Kelly. Falls back to
+the confidence-ladder if Kelly returns no-edge. Routes to docs API for
+BTC/ETH/ANDX1; everything else runs sim-only.</p>
+<hr />
+<h2 id="the-24-indicators">The 24 Indicators</h2>
+<h3 id="trend">Trend</h3>
+<ul>
+<li><strong>SMA</strong> — 10 / 20 / 50 / 100 / 200 period alignment</li>
+<li><strong>EMA</strong> — 9 / 21 crossover (bull/bear cross detection)</li>
+<li><strong>Ichimoku Cloud</strong> — Tenkan, Kijun, Senkou A/B, price-vs-cloud</li>
+<li><strong>SuperTrend</strong> — ATR-based trailing line, flip detection</li>
+<li><strong>Trend structure</strong> — higher-highs / higher-lows over recent swings</li>
+</ul>
+<h3 id="momentum">Momentum</h3>
+<ul>
+<li><strong>RSI</strong> — overbought/oversold + bullish/bearish divergence</li>
+<li><strong>MACD</strong> — line, signal, histogram, crossover, momentum acceleration</li>
+<li><strong>Stochastic</strong> — %K and %D, overbought/oversold + crosses</li>
+<li><strong>ADX</strong> — trend strength (weak &lt; 20 &lt; trending &lt; 40 &lt; strong)</li>
+<li><strong>TTM Squeeze</strong> — BB-inside-Keltner detection + squeeze momentum direction</li>
+</ul>
+<h3 id="volume-money-flow">Volume / Money Flow</h3>
+<ul>
+<li><strong>OBV</strong> — On-Balance Volume vs 20-bar average</li>
+<li><strong>CMF</strong> — Chaikin Money Flow (buy vs sell pressure)</li>
+<li><strong>VWAP</strong> — price above/below</li>
+<li><strong>Anchored VWAP</strong> — anchored from the last swing low, % distance</li>
+<li><strong>Relative volume (rvol)</strong> — current bar volume / 20-bar avg. Hard gate at
+  rvol ≥ 0.5 (skip thin tape).</li>
+</ul>
+<h3 id="volatility-range">Volatility / Range</h3>
+<ul>
+<li><strong>ATR</strong> — Average True Range, drives SL/TP sizing</li>
+<li><strong>Bollinger Bands</strong> — %B (position within bands), squeeze detection</li>
+<li><strong>52-week range</strong> — % distance from high/low</li>
+<li><strong>BB Squeeze</strong> — low-volatility coiling state</li>
+</ul>
+<h3 id="structure-levels">Structure / Levels</h3>
+<ul>
+<li><strong>Support / Resistance</strong> — pivot, R1/R2, S1/S2</li>
+<li><strong>Fibonacci</strong> — 0 / 0.236 / 0.382 / 0.5 / 0.618 / 0.786 / 1.0 retracements</li>
+<li><strong>Swing highs / lows</strong> — last 4 of each</li>
+</ul>
+<h3 id="candlestick-patterns-24-detected">Candlestick Patterns (24 detected)</h3>
+<p><strong>Bullish:</strong> Hammer, Inverted Hammer, Bullish Engulfing, Morning Star, Three
+White Soldiers, Bullish Marubozu, Piercing, Bullish Harami, Tweezers Bottom,
+Three Inside Up, Bullish Belt Hold, Dragonfly Doji</p>
+<p><strong>Bearish:</strong> Hanging Man, Shooting Star, Bearish Engulfing, Evening Star,
+Three Black Crows, Bearish Marubozu, Dark Cloud, Bearish Harami, Tweezers
+Top, Three Inside Down, Bearish Belt Hold, Gravestone Doji</p>
+<h3 id="multi-timeframe">Multi-Timeframe</h3>
+<p>The top 3 candidates from the 5m scan get re-analyzed on 15m candles. Final
+score = 0.6 × 5m + 0.4 × 15m.</p>
+<hr />
+<h2 id="risk-modes">Risk Modes</h2>
+<p>The master knob. Every entry/exit threshold reads from the active mode.
+Switching is atomic — flip the dropdown and the next tick uses the new mode.</p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>CONSERVATIVE</th>
+<th>REGULAR</th>
+<th>AGGRESSIVE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scan interval</td>
+<td>8s</td>
+<td>5s</td>
+<td>1s</td>
+</tr>
+<tr>
+<td>Min confidence</td>
+<td>70</td>
+<td>60</td>
+<td>40</td>
+</tr>
+<tr>
+<td>Scalp gate</td>
+<td>35 (high)</td>
+<td>22</td>
+<td>10 (loose)</td>
+</tr>
+<tr>
+<td>Max positions</td>
+<td>3</td>
+<td>6</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Max size / position</td>
+<td>20%</td>
+<td>20%</td>
+<td>10% (many small)</td>
+</tr>
+<tr>
+<td>Entries per scan cycle</td>
+<td>1</td>
+<td>2</td>
+<td>4–6</td>
+</tr>
+<tr>
+<td>Min hold</td>
+<td>90s</td>
+<td>60s</td>
+<td>10s</td>
+</tr>
+<tr>
+<td>Harvest target</td>
+<td>+1.5%</td>
+<td>+2.0%</td>
+<td>+1.2%</td>
+</tr>
+<tr>
+<td>Re-entry cooldown</td>
+<td>5 min</td>
+<td>3 min</td>
+<td>20s</td>
+</tr>
+<tr>
+<td>Emergency stop</td>
+<td>-4%</td>
+<td>-6%</td>
+<td>-8%</td>
+</tr>
+<tr>
+<td>Use case</td>
+<td>only A-grade setups</td>
+<td>balanced default</td>
+<td>constant trading across many coins</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="dip-detector-the-long-only-edge">DIP Detector (the long-only edge)</h2>
+<p>When DIP MODE is on, the bot only trades qualifying dips. A dip earns
+points across four pillars (total 100):</p>
+<h3 id="pillar-1-oversold-momentum-max-30-pts">Pillar 1 — Oversold momentum (max 30 pts)</h3>
+<ul>
+<li>RSI ≤ 28 (deeply oversold): 18 pts</li>
+<li>RSI ≤ 35 (oversold): 12 pts</li>
+<li>Fast RSI drop (8+ pts in a few bars): 8 pts</li>
+<li>Stochastic K ≤ 20: 8 pts</li>
+<li>BB %B ≤ 0.1 (at lower band): 6 pts</li>
+</ul>
+<h3 id="pillar-2-at-support-max-25-pts">Pillar 2 — At support (max 25 pts)</h3>
+<p>Distance to EMA21 / SMA20 / S/R / S1 pivot / VWAP:
+- Right at support (≤ 0.3% above): 14 pts
+- Very near (≤ 0.8%): 10 pts
+- Near (≤ 1.5%): 6 pts
+- Hard skip: price has already broken below the level</p>
+<p>Plus: CMF ≥ 0.05 (real money buying the dip): +5 pts</p>
+<h3 id="pillar-3-reversal-candle-max-20-pts">Pillar 3 — Reversal candle (max 20 pts)</h3>
+<ul>
+<li>High-value reversals (Hammer, Bullish Engulfing, Morning Star, Piercing,
+  Dragonfly Doji, Three White Soldiers): 12 pts</li>
+<li>Medium reversals (Tweezers Bottom, Bullish Harami, Three Inside Up): 7 pts</li>
+<li>Bullish RSI divergence: +8 pts</li>
+</ul>
+<h3 id="pillar-4-higher-timeframe-still-constructive-max-15-pts">Pillar 4 — Higher timeframe still constructive (max 15 pts)</h3>
+<ul>
+<li>Weekly trend BULLISH: 12 pts</li>
+<li>Weekly trend MIXED: 6 pts</li>
+<li>Hard penalty: Weekly BEARISH → −15 pts (falling-knife guard)</li>
+<li>Weekly RSI in 40–65 range: +3 pts</li>
+<li>Above EMA9 (bounce starting): +4 pts</li>
+</ul>
+<h3 id="hard-guards">Hard guards</h3>
+<ul>
+<li>Price below daily SMA200 AND weekly bearish: skip outright (bear-market dip).</li>
+</ul>
+<h3 id="threshold">Threshold</h3>
+<p>Each coin has its own <code>dip_threshold</code> (55 for blue chips, 60 for majors, 70
+for memes). A dip qualifies when score ≥ threshold. Qualified dips get a
+<strong>+40 scalp_score boost</strong> so they outrank generic trend signals.</p>
+<hr />
+<h2 id="per-coin-strategy-formula">Per-Coin Strategy Formula</h2>
+<p>Every coin's SL / TP / harvest is derived from three inputs:</p>
+<pre><code>INPUTS
+  rt_fee             = round_trip_fee(coin)   # 0.5% BTC/ETH, 0% ANDX1
+  atr_pct            = 75th percentile of (hi-lo)/close over 168h
+  audit_max_loss     = worst historical -% for this coin (from trade history)
+
+FORMULA
+  edge_floor         = max(0.3%, 1.5 × rt_fee)
+  sl_min             = max(0.3%, 0.5 × atr_pct)
+  sl_max             = min(1.5 × atr_pct, audit_max_loss × 0.8, 6%)
+  tp_min             = max(edge_floor, 0.8 × atr_pct)
+  tp_max             = min(3.0 × atr_pct, 10%)
+  harvest_threshold  = atr_pct + rt_fee   # net = 1 ATR after fees
+  min_hold_seconds   = 3 (zero-fee) | 5 (calm) | 15 (medium) | 25 (meme)
+  dip_threshold      = 55 (atr&lt;1.5%) | 60 (atr&lt;3%) | 70 (meme)
+  scalp_gate         = 10 (zero-fee) | 14 (paying fees) +4 if win_rate&lt;45%
+</code></pre>
+<h3 id="live-output-auto-tuned-on-real-atr">Live output (auto-tuned on real ATR)</h3>
+<table>
+<thead>
+<tr>
+<th>Coin</th>
+<th>ATR</th>
+<th>Audit</th>
+<th>SL</th>
+<th>TP</th>
+<th>Harvest</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BTC</td>
+<td>1.08%</td>
+<td>-16.4%</td>
+<td>0.5–1.6%</td>
+<td>0.9–3.2%</td>
+<td>+1.58%</td>
+</tr>
+<tr>
+<td>ETH</td>
+<td>1.46%</td>
+<td>-19.8%</td>
+<td>0.7–2.2%</td>
+<td>1.2–4.4%</td>
+<td>+1.96%</td>
+</tr>
+<tr>
+<td>SOL</td>
+<td>1.72%</td>
+<td>—</td>
+<td>0.9–2.6%</td>
+<td>1.4–5.2%</td>
+<td>+2.22%</td>
+</tr>
+<tr>
+<td>ADA</td>
+<td>2.42%</td>
+<td>—</td>
+<td>1.2–3.6%</td>
+<td>1.9–7.3%</td>
+<td>+2.92%</td>
+</tr>
+<tr>
+<td>SUSHI</td>
+<td>2.57%</td>
+<td>—</td>
+<td>1.3–3.9%</td>
+<td>2.1–7.7%</td>
+<td>+3.07%</td>
+</tr>
+<tr>
+<td>PEPE</td>
+<td>2.15%</td>
+<td>—</td>
+<td>1.1–3.2%</td>
+<td>1.7–6.4%</td>
+<td>+2.65%</td>
+</tr>
+<tr>
+<td>ANDX1</td>
+<td>1.00%</td>
+<td>—</td>
+<td>0.5–1.5%</td>
+<td>0.8–3.0%</td>
+<td>+1.00%</td>
+</tr>
+</tbody>
+</table>
+<p>Re-tuning is one click — the bot pulls fresh ATR + audit each time.</p>
+<hr />
+<h2 id="position-sizing-kelly-clamps">Position Sizing (Kelly + clamps)</h2>
+<p>Every entry runs through:</p>
+<pre><code>kelly_qty       = kelly_position_size(
+                    ml_probability,         # calibrated win-prob from ensemble
+                    technical_score,        # scalp_score
+                    atr_pct,                # for risk-parity
+                    sector_concentration,   # penalty if too much in one class
+                    max_single_position_pct # mode hard cap
+                  )
+kelly_qty      *= mode.size_boost × goal_size_scale
+deployed_usd    = kelly_qty × price
+</code></pre>
+<h3 id="goal-based-throttling">Goal-based throttling</h3>
+<ul>
+<li>Daily target hit → size × 0.5, gate +25</li>
+<li>Near target (80%) → size × 0.8, gate +10</li>
+<li>Drawdown 30%+ from session peak → "guard mode" (A-grade signals only)</li>
+<li>Drawdown 40%+ → hard pause until reset</li>
+</ul>
+<hr />
+<h2 id="exit-management-9-mechanisms-checked-every-1s">Exit Management (9 mechanisms, checked every 1s)</h2>
+<p>For every open position, in this order:</p>
+<ol>
+<li><strong>Emergency stop</strong> — gain ≤ -emergency_stop_pct (mode-specific). Bypasses min-hold.</li>
+<li><strong>Min hold</strong> — skip exit checks until per-coin min_hold_seconds elapses.</li>
+<li><strong>Stop loss</strong> — gain ≤ -SL_pct. Direction-aware (long below entry, short above).</li>
+<li><strong>Take profit</strong> — gain ≥ TP_pct. Direction-aware.</li>
+<li><strong>Harvest</strong> — gain ≥ harvest_threshold (per-coin). Locks small wins fast.</li>
+<li><strong>Trail lock</strong> — peak gain ≥ trail_lock_pct AND drop ≥ 0.5% from peak.</li>
+<li><strong>Trail breakeven</strong> — peak gain ≥ trail_be_pct AND gain back to 0.</li>
+<li><strong>Fade protect</strong> — peak ≥ fade_threshold AND gain dropped fade_drop %
+   from peak (e.g. peaked at +3%, now at +1.8%).</li>
+<li><strong>Dump bleed</strong> — gain ≤ dump_bleed_pct (slow leak cut).</li>
+<li><strong>Smart stop reassess</strong> (sim only) — if SL hit but indicators still
+    bullish, brief chance to recover.</li>
+</ol>
+<hr />
+<h2 id="fee-awareness">Fee Awareness</h2>
+<pre><code>fee_per_side(BTC/ETH) = 0.25%     # andX taker
+fee_per_side(ANDX1)   = 0.00%
+round_trip(coin)      = 2 × fee_per_side(coin)
+</code></pre>
+<p>On a $170 BTC trade: $0.85 round-trip fee. The harvest threshold's
+<code>atr_pct + rt_fee</code> design means the harvest target already includes the
+fee budget — the bot doesn't need explicit fee-subtraction logic if the
+formula's gross targets are trusted.</p>
+<p>ANDX1 is the <strong>frequency engine</strong>. Zero fees mean tiny moves (+0.3%)
+are profitable, so it runs the tightest hold (3s) and gate (10).</p>
+<hr />
+<h2 id="learning-system-closes-the-loop">Learning System (closes the loop)</h2>
+<p>After every trade, three records update:</p>
+<ul>
+<li><strong><code>ticker_memory.json</code></strong> — per-coin win rate + average gain/loss. Future
+  Kelly sizing on the same coin scales 0.4× to 1.1× by this reputation.</li>
+<li><strong><code>learning_data.json</code></strong> — per-indicator-category accuracy. Each
+  indicator's weight is multiplied by 0.85×–1.15× based on its hit rate
+  over the last 50+ trades. Gentle (no flip-flop), only kicks in after 50+
+  trades.</li>
+<li><strong><code>trade_history.json</code></strong> — full feature vector + outcome. Retrains the
+  XGBoost+LightGBM ensemble every 10 trades.</li>
+</ul>
+<hr />
+<h2 id="architectural-choices">Architectural Choices</h2>
+<ul>
+<li><strong>5m candles</strong> — best signal:noise ratio for scalping. 1m has too much
+  noise, 15m too slow for active recycling.</li>
+<li><strong>Kelly over fixed %</strong> — high-confidence trades get bigger, low-confidence
+  trades get smaller. Hard-capped to avoid Kelly's classic "go all-in on +EV"
+  failure mode.</li>
+<li><strong>ML on top of TA</strong> — the 24 indicators have known false-positive patterns
+  (e.g. RSI divergence in trending markets). The ensemble learns which
+  combinations have predicted wins historically.</li>
+<li><strong>Long-only live</strong> — andX's documented API supports spot longs only on
+  BTC/ETH/ANDX1. Sim runs long+short across ~30 Alpaca coins for comparison.</li>
+<li><strong>Per-coin strategies</strong> — BTC's 0.5% range gets stopped out instantly by
+  SOL's 1.7% noise. One set of SL/TP across all coins either wastes
+  opportunities on calm coins or churns on volatile ones.</li>
+</ul>
+<hr />
+<h2 id="files">Files</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app.py</code></td>
+<td>Main engine, Flask server, trading loops</td>
+</tr>
+<tr>
+<td><code>analysis.py</code></td>
+<td>16 classic indicators + scoring</td>
+</tr>
+<tr>
+<td><code>indicators_pro.py</code></td>
+<td>TTM Squeeze, SuperTrend, Anchored VWAP</td>
+</tr>
+<tr>
+<td><code>dip_detector.py</code></td>
+<td>4-pillar dip scoring</td>
+</tr>
+<tr>
+<td><code>coin_strategies.py</code></td>
+<td>Per-coin tiers + auto-tuner</td>
+</tr>
+<tr>
+<td><code>kelly_sizing.py</code></td>
+<td>Kelly + risk-parity + sector penalty</td>
+</tr>
+<tr>
+<td><code>ml_engine.py</code> / <code>ml_ensemble.py</code></td>
+<td>ML brain</td>
+</tr>
+<tr>
+<td><code>learner.py</code></td>
+<td>Adaptive weights + ticker memory</td>
+</tr>
+<tr>
+<td><code>andx_client.py</code></td>
+<td>andX exchange adapter (HMAC)</td>
+</tr>
+<tr>
+<td><code>portfolio_live.py</code></td>
+<td>Live portfolio mirror</td>
+</tr>
+<tr>
+<td><code>portfolio_sim.py</code></td>
+<td>Paper portfolio</td>
+</tr>
+<tr>
+<td><code>hybrid_client.py</code></td>
+<td>Alpaca data + andX execution</td>
+</tr>
+<tr>
+<td><code>screener.py</code></td>
+<td>Universe selection</td>
+</tr>
+</tbody>
+</table>
+</body></html>

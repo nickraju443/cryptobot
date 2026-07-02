@@ -1,0 +1,25 @@
+# --- credentials / sessions — NEVER commit these ---
+andx_credentials.json
+andx_session.json
+_andx_chrome_profile/
+_chrome_andx_profile/
+_pw_andx_profile/
+
+# --- runtime state (auto-created per user) ---
+portfolio.json
+portfolio_sim.json
+portfolio_live_meta*.json
+bot_stats*.json
+trade_history.json
+learning_data.json
+strategy_learned.json
+ticker_memory.json
+paper_*.json
+*.log
+
+# --- python ---
+.venv/
+__pycache__/
+*.pyc
+build/
+dist/

@@ -1,0 +1,1429 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta
+            name="description"
+            content="ANDX API documentation"
+        >
+    <title>ANDX API Reference</title>
+
+    <style media="screen">
+      .highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight .gh {
+  color: #999999;
+}
+.highlight .sr {
+  color: #f6aa11;
+}
+.highlight .go {
+  color: #888888;
+}
+.highlight .gp {
+  color: #555555;
+}
+.highlight .gs {
+}
+.highlight .gu {
+  color: #aaaaaa;
+}
+.highlight .nb {
+  color: #f6aa11;
+}
+.highlight .cm {
+  color: #75715e;
+}
+.highlight .cp {
+  color: #75715e;
+}
+.highlight .c1 {
+  color: #75715e;
+}
+.highlight .cs {
+  color: #75715e;
+}
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cpf {
+  color: #75715e;
+}
+.highlight .err {
+  color: #960050;
+}
+.highlight .gr {
+  color: #960050;
+}
+.highlight .gt {
+  color: #960050;
+}
+.highlight .gd {
+  color: #49483e;
+}
+.highlight .gi {
+  color: #49483e;
+}
+.highlight .ge {
+  color: #49483e;
+}
+.highlight .kc {
+  color: #66d9ef;
+}
+.highlight .kd {
+  color: #66d9ef;
+}
+.highlight .kr {
+  color: #66d9ef;
+}
+.highlight .no {
+  color: #66d9ef;
+}
+.highlight .kt {
+  color: #66d9ef;
+}
+.highlight .mf {
+  color: #ae81ff;
+}
+.highlight .mh {
+  color: #ae81ff;
+}
+.highlight .il {
+  color: #ae81ff;
+}
+.highlight .mi {
+  color: #ae81ff;
+}
+.highlight .mo {
+  color: #ae81ff;
+}
+.highlight .m, .highlight .mb, .highlight .mx {
+  color: #ae81ff;
+}
+.highlight .sc {
+  color: #ae81ff;
+}
+.highlight .se {
+  color: #ae81ff;
+}
+.highlight .ss {
+  color: #ae81ff;
+}
+.highlight .sd {
+  color: #e6db74;
+}
+.highlight .s2 {
+  color: #e6db74;
+}
+.highlight .sb {
+  color: #e6db74;
+}
+.highlight .sh {
+  color: #e6db74;
+}
+.highlight .si {
+  color: #e6db74;
+}
+.highlight .sx {
+  color: #e6db74;
+}
+.highlight .s1 {
+  color: #e6db74;
+}
+.highlight .s, .highlight .sa, .highlight .dl {
+  color: #e6db74;
+}
+.highlight .na {
+  color: #a6e22e;
+}
+.highlight .nc {
+  color: #a6e22e;
+}
+.highlight .nd {
+  color: #a6e22e;
+}
+.highlight .ne {
+  color: #a6e22e;
+}
+.highlight .nf, .highlight .fm {
+  color: #a6e22e;
+}
+.highlight .vc {
+  color: #ffffff;
+}
+.highlight .nn {
+  color: #ffffff;
+}
+.highlight .ni {
+  color: #ffffff;
+}
+.highlight .bp {
+  color: #ffffff;
+}
+.highlight .vg {
+  color: #ffffff;
+}
+.highlight .vi {
+  color: #ffffff;
+}
+.highlight .nv, .highlight .vm {
+  color: #ffffff;
+}
+.highlight .w {
+  color: #ffffff;
+}
+.highlight {
+  color: #ffffff;
+}
+.highlight .n, .highlight .py, .highlight .nx {
+  color: #ffffff;
+}
+.highlight .nl {
+  color: #f92672;
+}
+.highlight .ow {
+  color: #f92672;
+}
+.highlight .nt {
+  color: #f92672;
+}
+.highlight .k, .highlight .kv {
+  color: #f92672;
+}
+.highlight .kn {
+  color: #f92672;
+}
+.highlight .kp {
+  color: #f92672;
+}
+.highlight .o {
+  color: #f92672;
+}
+    </style>
+    <style media="print">
+      * {
+        -webkit-transition:none!important;
+        transition:none!important;
+      }
+      .highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight, .highlight .w {
+  color: #586e75;
+}
+.highlight .err {
+  color: #002b36;
+  background-color: #dc322f;
+}
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cm, .highlight .cpf, .highlight .c1, .highlight .cs {
+  color: #657b83;
+}
+.highlight .cp {
+  color: #b58900;
+}
+.highlight .nt {
+  color: #b58900;
+}
+.highlight .o, .highlight .ow {
+  color: #93a1a1;
+}
+.highlight .p, .highlight .pi {
+  color: #93a1a1;
+}
+.highlight .gi {
+  color: #859900;
+}
+.highlight .gd {
+  color: #dc322f;
+}
+.highlight .gh {
+  color: #268bd2;
+  background-color: #002b36;
+  font-weight: bold;
+}
+.highlight .k, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .kv {
+  color: #6c71c4;
+}
+.highlight .kc {
+  color: #cb4b16;
+}
+.highlight .kt {
+  color: #cb4b16;
+}
+.highlight .kd {
+  color: #cb4b16;
+}
+.highlight .s, .highlight .sb, .highlight .sc, .highlight .dl, .highlight .sd, .highlight .s2, .highlight .sh, .highlight .sx, .highlight .s1 {
+  color: #859900;
+}
+.highlight .sa {
+  color: #6c71c4;
+}
+.highlight .sr {
+  color: #2aa198;
+}
+.highlight .si {
+  color: #d33682;
+}
+.highlight .se {
+  color: #d33682;
+}
+.highlight .nn {
+  color: #b58900;
+}
+.highlight .nc {
+  color: #b58900;
+}
+.highlight .no {
+  color: #b58900;
+}
+.highlight .na {
+  color: #268bd2;
+}
+.highlight .m, .highlight .mb, .highlight .mf, .highlight .mh, .highlight .mi, .highlight .il, .highlight .mo, .highlight .mx {
+  color: #859900;
+}
+.highlight .ss {
+  color: #859900;
+}
+    </style>
+    <link href="stylesheets/screen-939a222f.css" rel="stylesheet" media="screen" />
+    <link href="stylesheets/print-966d6edc.css" rel="stylesheet" media="print" />
+      <script src="javascripts/all-f08d5440.js"></script>
+
+    <script>
+      $(function() { setupCodeCopy(); });
+    </script>
+  </head>
+
+  <body class="index" data-languages="[&quot;shell&quot;,&quot;python&quot;,&quot;javascript&quot;]">
+    <a href="#" id="nav-button">
+      <span>
+        NAV
+        <img src="images/navbar-cad8cdcb.png" alt="" />
+      </span>
+    </a>
+    <div class="toc-wrapper">
+      <img src="images/logo-dd8ace75.png" class="logo" alt="" />
+        <div class="lang-selector">
+              <a href="#" data-language-name="shell">shell</a>
+              <a href="#" data-language-name="python">python</a>
+              <a href="#" data-language-name="javascript">javascript</a>
+        </div>
+        <div class="search">
+          <input type="text" class="search" id="input-search" placeholder="Search">
+        </div>
+        <ul class="search-results"></ul>
+      <ul id="toc" class="toc-list-h1">
+          <li>
+            <a href="#introduction" class="toc-h1 toc-link" data-title="Introduction">Introduction</a>
+          </li>
+          <li>
+            <a href="#rate-limits" class="toc-h1 toc-link" data-title="Rate Limits">Rate Limits</a>
+          </li>
+          <li>
+            <a href="#public-endpoints" class="toc-h1 toc-link" data-title="Public Endpoints">Public Endpoints</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#list-all-markets-info" class="toc-h2 toc-link" data-title="List All Markets Info">List All Markets Info</a>
+                  </li>
+                  <li>
+                    <a href="#get-a-specific-market-info" class="toc-h2 toc-link" data-title="Get a Specific Market Info">Get a Specific Market Info</a>
+                  </li>
+                  <li>
+                    <a href="#list-all-tickers-info" class="toc-h2 toc-link" data-title="List All Tickers Info">List All Tickers Info</a>
+                  </li>
+                  <li>
+                    <a href="#get-a-specific-ticker-info" class="toc-h2 toc-link" data-title="Get a Specific Ticker Info">Get a Specific Ticker Info</a>
+                  </li>
+                  <li>
+                    <a href="#get-order-book" class="toc-h2 toc-link" data-title="Get Order Book">Get Order Book</a>
+                  </li>
+              </ul>
+          </li>
+          <li>
+            <a href="#authentication" class="toc-h1 toc-link" data-title="Authentication">Authentication</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#generating-an-api-key" class="toc-h2 toc-link" data-title="Generating an API Key">Generating an API Key</a>
+                  </li>
+                  <li>
+                    <a href="#creating-a-request" class="toc-h2 toc-link" data-title="Creating a Request">Creating a Request</a>
+                  </li>
+                  <li>
+                    <a href="#signing-a-message" class="toc-h2 toc-link" data-title="Signing a Message">Signing a Message</a>
+                  </li>
+              </ul>
+          </li>
+          <li>
+            <a href="#private-endpoints" class="toc-h1 toc-link" data-title="Private Endpoints">Private Endpoints</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#get-balance" class="toc-h2 toc-link" data-title="Get Balance">Get Balance</a>
+                  </li>
+                  <li>
+                    <a href="#get-orders" class="toc-h2 toc-link" data-title="Get Orders">Get Orders</a>
+                  </li>
+                  <li>
+                    <a href="#get-order-status" class="toc-h2 toc-link" data-title="Get Order Status">Get Order Status</a>
+                  </li>
+                  <li>
+                    <a href="#create-order" class="toc-h2 toc-link" data-title="Create Order">Create Order</a>
+                  </li>
+                  <li>
+                    <a href="#cancel-order" class="toc-h2 toc-link" data-title="Cancel Order">Cancel Order</a>
+                  </li>
+                  <li>
+                    <a href="#create-withdraw-request" class="toc-h2 toc-link" data-title="Create Withdraw Request">Create Withdraw Request</a>
+                  </li>
+              </ul>
+          </li>
+          <li>
+            <a href="#response" class="toc-h1 toc-link" data-title="Response">Response</a>
+          </li>
+      </ul>
+        <ul class="toc-footer">
+            <li><a href='https://platform.andx.one/login?redirect=%2Fsettings%2Fsecurity'>Sign Up for a Developer Key</a></li>
+        </ul>
+    </div>
+    <div class="page-wrapper">
+      <div class="dark-box"></div>
+      <div class="content">
+        <h1 id='introduction'>Introduction</h1>
+<p>Welcome to the ANDX API! Using the API you can read market info, ticker info, create orders, view the status of existing orders, cancel orders, get balances etc. This documentation includes examples using cURL and python. The python examples use requests for https.</p>
+
+<p>All request paths must include the trailing slash (e.g. /api/v1/ticker/ instead of /api/v1/ticker).</p>
+<h1 id='rate-limits'>Rate Limits</h1>
+<p>Do not make more than 60 requests per 1 minute or you will get a rate limit error(HTTP 429). We expect you won&#39;t encounter rate limits in normal usage.</p>
+<h1 id='public-endpoints'>Public Endpoints</h1>
+<p>Public endpoints are used for retrieving informations about market. Since they are unauthenticated, no need to add authentication headers for requests(<strong>ACCESS-USER</strong>, <strong>ACCESS-PASSPHRASE</strong>, <strong>ACCESS-TIMESTAMP</strong>, <strong>ACCESS-SIGN</strong>, <strong>ACCESS-KEY</strong>).</p>
+<h2 id='list-all-markets-info'>List All Markets Info</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'https://platform.andx.one/api/v1/market_info/'</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://platform.andx.one/api/v1/market_info/"</span>
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"markets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"market_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTCUSDT"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"url_symbol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"btcusdt"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"base_currency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTC"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"counter_currency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USDT"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"minimum_order_amount"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5.00"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"maximum_order_amount"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10000.00"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"base_currency_decimal"</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"counter_currency_decimal"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"presentation_decimal"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"resell_market"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"min_multiplier"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.60"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"max_multiplier"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.00"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"maker_fee_ratio"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00150000"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"taker_fee_ratio"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00250000"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"list_date"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"base_currency_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Bitcoin"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"counter_currency_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Tether"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"risk_group"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"trigger_order"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"L"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"M"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"market_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ETHUSDT"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"url_symbol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ethusdt"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"base_currency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"counter_currency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USDT"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"minimum_order_amount"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5.00"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"maximum_order_amount"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000000.00"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"base_currency_decimal"</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"counter_currency_decimal"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"presentation_decimal"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"resell_market"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"min_multiplier"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.60"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"max_multiplier"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.00"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"maker_fee_ratio"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00150000"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"taker_fee_ratio"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00250000"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"list_date"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"base_currency_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Ethereum"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"counter_currency_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Tether"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"risk_group"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"trigger_order"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"L"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"M"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint retrieves all available markets.</p>
+<h3 id='http-request'>HTTP Request</h3>
+<p><code>GET https://platform.andx.one/api/v1/market_info/</code></p>
+<h2 id='get-a-specific-market-info'>Get a Specific Market Info</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'https://platform.andx.one/api/v1/market_info/BTCUSDT/'</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://platform.andx.one/api/v1/market_info/BTCUSDT/"</span>
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"markets"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"market_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTCUSDT"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"url_symbol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"btcusdt"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"base_currency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTC"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"counter_currency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USDT"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"minimum_order_amount"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5.00"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"maximum_order_amount"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10000.00"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"base_currency_decimal"</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"counter_currency_decimal"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"presentation_decimal"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"resell_market"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"min_multiplier"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.60"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"max_multiplier"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.00"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"maker_fee_ratio"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00150000"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"taker_fee_ratio"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00250000"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"list_date"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"base_currency_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Bitcoin"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"counter_currency_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Tether"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"risk_group"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"trigger_order"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"L"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"M"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint retrieves a specific market data.</p>
+<h3 id='http-request-2'>HTTP Request</h3>
+<p><code>GET https://platform.andx.one/api/v1/market_info/&lt;MARKET_CODE&gt;/</code></p>
+<h3 id='url-parameters'>URL Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>MARKET_CODE</td>
+<td>Market code of the market to retrieve</td>
+</tr>
+</tbody></table>
+<h2 id='list-all-tickers-info'>List All Tickers Info</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'https://platform.andx.one/api/v1/ticker/'</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://platform.andx.one/api/v1/ticker/"</span>
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"ticker"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"BTCUSDT"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"market"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"market_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTCUSDT"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"base_currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTC"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"counter_currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USDT"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"bid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76426.55"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"ask"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76526.46"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"last_price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76519.57"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"last_size"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00010000"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"volume_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"change_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"low_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76519.57"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"high_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76519.57"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"avg_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76519.57"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1779206986.3913925"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"ETHUSDT"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"market"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"market_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ETHUSDT"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"base_currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"counter_currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USDT"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"bid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2115.33"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"ask"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2117.46"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"last_price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2103.95"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"last_size"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.02531377"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"volume_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.31"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"change_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-0.48"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"low_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2091.37"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"high_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2148.15"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"avg_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2122.15"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1779206985.910192"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint retrieves ticker data for all markets</p>
+<h3 id='http-request-3'>HTTP Request</h3>
+<p><code>GET https://platform.andx.one/api/v1/ticker/</code></p>
+<h2 id='get-a-specific-ticker-info'>Get a Specific Ticker Info</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'https://platform.andx.one/api/v1/ticker/BTCUSDT/'</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://platform.andx.one/api/v1/ticker/BTCUSDT/"</span>
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"ticker"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"market"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"market_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTCUSDT"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"base_currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTC"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"counter_currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USDT"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"bid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"40683.54"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"ask"</span><span class="p">:</span><span class="w"> </span><span class="s2">"40700.00"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"last_price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"40683.54"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"last_size"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.05630107"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"volume_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.48920663"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"change_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.47"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"low_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"39690.37"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"high_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"41000.00"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"avg_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"40062.85"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1525908532.9022408"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint retrieves a specific ticker data for given market.</p>
+<h3 id='http-request-4'>HTTP Request</h3>
+<p><code>GET https://platform.andx.one/api/v1/ticker/&lt;MARKET_CODE&gt;/</code></p>
+<h3 id='url-parameters-2'>URL Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>MARKET_CODE</td>
+<td>Market code of the market to retrieve</td>
+</tr>
+</tbody></table>
+<h2 id='get-order-book'>Get Order Book</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'https://platform.andx.one/api/v1/order_book/BTCUSDT/'</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://platform.andx.one/api/v1/order_book/BTCUSDT/"</span>
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"market_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTCUSDT"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ticker"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"market"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"market_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTCUSDT"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"base_currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTC"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"counter_currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USDT"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"bid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76377.77"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"ask"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76530.70"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"last_price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76519.57"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"last_size"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00010000"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"volume_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"change_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"low_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76519.57"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"high_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76519.57"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"avg_24h"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76519.57"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1779207268.6902888"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"buyers"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"orders_total_amount"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.89599893"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"orders_price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76377.77"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="err">...</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nl">"sellers"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"orders_total_amount"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00200000"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"orders_price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76530.00"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="err">...</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nl">"last_transactions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"amount"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.05630107"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"76519.57"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1525897633.968654"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"B"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="err">...</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1525937572.5233314"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint retrieves order book for given market. Last transactions and ticker data also included in response.</p>
+<h3 id='http-request-5'>HTTP Request</h3>
+<p><code>GET https://platform.andx.one/api/v1/order_book/&lt;MARKET_CODE&gt;/</code></p>
+<h3 id='url-parameters-3'>URL Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>MARKET_CODE</td>
+<td>Market code of the market to retrieve</td>
+</tr>
+</tbody></table>
+<h1 id='authentication'>Authentication</h1>
+<p>ANDX uses API keys to allow access to the private API calls. You can generate a new API key in your <a href="https://platform.andx.one/login">ANDX Dashboard</a>.</p>
+
+<p>ANDX expects the API key to be included in all private API requests to the server in header.</p>
+<h2 id='generating-an-api-key'>Generating an API Key</h2>
+<p>For private API calls you need to sign your request with parameters below:</p>
+
+<ul>
+<li><strong>API Key</strong> (Will be generated by ANDX upon creating API key)</li>
+<li><strong>Secret Key</strong> (Will be generated by ANDX upon creating API key)</li>
+<li><strong>Passphrase</strong> (Will be provided by you upon creating API key)</li>
+</ul>
+<h2 id='creating-a-request'>Creating a Request</h2>
+<p>All private API calls must contain the following headers:</p>
+
+<ul>
+<li><strong>ACCESS-USER</strong> Username as a string.</li>
+<li><strong>ACCESS-PASSPHRASE</strong> The passphrase you specified when creating the API key.</li>
+<li><strong>ACCESS-TIMESTAMP</strong> A timestamp for your request.</li>
+<li><strong>ACCESS-SIGN</strong> The base64-encoded signature (see Signing a Message).</li>
+<li><strong>ACCESS-KEY</strong> The api key as a string.</li>
+</ul>
+
+<p>Content-Type should be set as <code>application/json</code>.</p>
+<h2 id='signing-a-message'>Signing a Message</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">hmac</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">())</span>
+
+<span class="k">def</span> <span class="nf">sign_request</span><span class="p">(</span><span class="n">apikey</span><span class="p">,</span> <span class="n">secretkey</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">pass_phrase</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">body</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">body</span><span class="p">.</span><span class="n">decode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">apikey</span> <span class="o">+</span> <span class="n">username</span> <span class="o">+</span> <span class="n">pass_phrase</span> <span class="o">+</span> <span class="n">timestamp</span> <span class="o">+</span> <span class="n">data</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">apikey</span> <span class="o">+</span> <span class="n">username</span> <span class="o">+</span> <span class="n">pass_phrase</span> <span class="o">+</span> <span class="n">timestamp</span> <span class="o">+</span> <span class="s">"{}"</span>
+
+    <span class="n">signature</span> <span class="o">=</span> <span class="n">hmac</span><span class="p">.</span><span class="n">new</span><span class="p">(</span><span class="nb">str</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="n">secretkey</span><span class="p">),</span>
+                        <span class="n">msg</span><span class="o">=</span><span class="nb">str</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="n">message</span><span class="p">),</span>
+                        <span class="n">digestmod</span><span class="o">=</span><span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span><span class="p">).</span><span class="n">hexdigest</span><span class="p">().</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">signature</span>
+</code></pre></div><div class="highlight"><pre class="highlight javascript tab-javascript"><code><span class="k">import</span> <span class="o">*</span> <span class="k">as</span> <span class="nx">jsSHA</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">jssha</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">timestamp</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">().</span><span class="nx">getTime</span><span class="p">();</span>
+
+<span class="kd">function</span> <span class="nx">sign_request</span> <span class="p">(</span><span class="nx">apikey</span><span class="p">,</span> <span class="nx">secretkey</span><span class="p">,</span> <span class="nx">username</span><span class="p">,</span> <span class="nx">pass_phrase</span><span class="p">,</span> <span class="nx">timestamp</span><span class="p">,</span> <span class="nx">body</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">message</span> <span class="o">=</span> <span class="nx">apikey</span> <span class="o">+</span> <span class="nx">username</span> <span class="o">+</span> <span class="nx">pass_phrase</span> <span class="o">+</span> <span class="nx">timestamp</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">body</span><span class="p">);</span>
+  <span class="kd">const</span> <span class="nx">shaObj</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">jsSHA</span><span class="p">(</span><span class="dl">"</span><span class="s2">SHA-256</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">TEXT</span><span class="dl">"</span><span class="p">);</span>
+  <span class="nx">shaObj</span><span class="p">.</span><span class="nx">setHMACKey</span><span class="p">(</span><span class="nx">secretkey</span><span class="p">,</span> <span class="dl">"</span><span class="s2">TEXT</span><span class="dl">"</span><span class="p">);</span>
+  <span class="nx">shaObj</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="nx">shaObj</span><span class="p">.</span><span class="nx">getHMAC</span><span class="p">(</span><span class="dl">"</span><span class="s2">HEX</span><span class="dl">"</span><span class="p">).</span><span class="nx">toUpperCase</span><span class="p">();</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>The <strong>ACCESS-SIGN</strong> header should be generated by using HMAC-SHA256 of <strong>api_key + username + pass_phrase + timestamp + body</strong> (where + represents string concatenation)</p>
+
+<p>The timestamp value should be the same in the <strong>ACCESS-TIMESTAMP</strong> header.</p>
+
+<p>The <code>body</code> is the request body string as JSON or <code>&quot;{}&quot;</code> if there is no request body.</p>
+<h1 id='private-endpoints'>Private Endpoints</h1>
+<p>Private endpoints are used for order and account management. Every private request must be signed as described in <a href="#authentication">authentication</a> section.</p>
+<h2 id='get-balance'>Get Balance</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s">"https://platform.andx.one/api/v1/balance/Main/"</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'ACCESS-USER'</span><span class="p">:</span> <span class="s">"your.username"</span><span class="p">,</span>
+    <span class="s">'ACCESS-PASSPHRASE'</span><span class="p">:</span> <span class="s">"your.passphrase"</span><span class="p">,</span>
+    <span class="s">'ACCESS-TIMESTAMP'</span><span class="p">:</span> <span class="s">"timestamp"</span><span class="p">,</span>
+    <span class="s">'ACCESS-SIGN'</span><span class="p">:</span> <span class="s">"signature"</span><span class="p">,</span>
+    <span class="s">'ACCESS-KEY'</span><span class="p">:</span> <span class="s">"your.apikey"</span><span class="p">,</span>
+    <span class="s">'content-type'</span><span class="p">:</span> <span class="s">"application/json"</span>
+    <span class="p">}</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s">"GET"</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">text</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="nt">-H</span> <span class="s2">"cache-control: no-cache"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-USER: your.username"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-PASSPHRASE: your.passphrase"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-TIMESTAMP: timestamp"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-SIGN: signature"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-KEY: your.apikey"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"content-type: application/json"</span> <span class="se">\</span>
+     https://platform.andx.one/api/v1/balance/Main/
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"balances"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"ETH"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"available_balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"LTC"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"LTC"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"available_balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"USD"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USD"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"available_balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"TRY"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TRY"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"available_balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"BTC"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTC"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"available_balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"XRP"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"currency_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"XRP"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"available_balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint retrieves the balance of given account. If account name is not provided, then main account&#39;s balance information will be retrieved.</p>
+<h3 id='http-request'>HTTP Request</h3>
+<p><code>GET https://platform.andx.one/api/v1/balance/&lt;ACCOUNT_NAME&gt;/</code></p>
+
+<p>for default account:</p>
+
+<p><code>GET https://platform.andx.one/api/v1/balance/</code></p>
+<h3 id='url-parameters'>URL Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>ACCOUNT_NAME</td>
+<td>Name of the account to retrieve</td>
+<td>Main</td>
+</tr>
+</tbody></table>
+<h2 id='get-orders'>Get Orders</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s">"https://platform.andx.one/api/v1/orders/Main/A/BTCUSDT/"</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'ACCESS-USER'</span><span class="p">:</span> <span class="s">"your.username"</span><span class="p">,</span>
+    <span class="s">'ACCESS-PASSPHRASE'</span><span class="p">:</span> <span class="s">"your.passphrase"</span><span class="p">,</span>
+    <span class="s">'ACCESS-TIMESTAMP'</span><span class="p">:</span> <span class="s">"timestamp"</span><span class="p">,</span>
+    <span class="s">'ACCESS-SIGN'</span><span class="p">:</span> <span class="s">"signature"</span><span class="p">,</span>
+    <span class="s">'ACCESS-KEY'</span><span class="p">:</span> <span class="s">"your.apikey"</span><span class="p">,</span>
+    <span class="s">'content-type'</span><span class="p">:</span> <span class="s">"application/json"</span>
+    <span class="p">}</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s">"GET"</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">text</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="nt">-H</span> <span class="s2">"cache-control: no-cache"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-USER: your.username"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-PASSPHRASE: your.passphrase"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-TIMESTAMP: timestamp"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-SIGN: signature"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-KEY: your.apikey"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"content-type: application/json"</span> <span class="se">\</span>
+     https://platform.andx.one/api/v1/orders/Main/A/BTCUSDT/
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"orders"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"order_number"</span><span class="p">:</span><span class="w"> </span><span class="mi">54259</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"account_number"</span><span class="p">:</span><span class="w"> </span><span class="mi">109</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"order_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"limit"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"market_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTCUSDT"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"base_currency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTC"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"counter_currency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USDT"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"channel_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"W"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"40683.54"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"volume"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.01000000"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"volume_executed"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.01000000"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"volume_remaining"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00000000"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"buy_sell"</span><span class="p">:</span><span class="w"> </span><span class="s2">"S"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"F"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"add_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2018-05-10 11:23:22.710724+00:00"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"total"</span><span class="p">:</span><span class="w"> </span><span class="s2">"406.83"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"avg_price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"40683.54"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"client_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"post_only"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"cancelable"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nl">"page_number"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"total_page_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"total_row_count"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"has_next"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint retrieves the orders of given account and market. If you need to retrieve orders from all available markets on the system use second url below, otherwise use first url to retrieve orders from a spesific market.</p>
+<h3 id='pagination'>Pagination</h3>
+<p>This API request will return paginated results. The <strong>page_number</strong> parameters can be used to control pagination. Default page number will be 1 if it is not provided. Page size is 20 for every request.</p>
+<h3 id='http-request-2'>HTTP Request</h3>
+<p><code>GET https://platform.andx.one/api/v1/orders/&lt;ACCOUNT_NAME&gt;/&lt;STATUS&gt;/&lt;MARKET_CODE&gt;/&lt;PAGE_NUMBER&gt;/</code></p>
+<h3 id='url-parameters-2'>URL Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Required</th>
+<th>Default</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>ACCOUNT_NAME</td>
+<td>Name of the account to retrieve</td>
+<td>Yes</td>
+<td>-</td>
+</tr>
+<tr>
+<td>STATUS</td>
+<td>Order status(OPEN = &quot;O&quot;, CLOSED = &quot;C&quot;, ALL = &quot;A&quot;)</td>
+<td>Yes</td>
+<td>-</td>
+</tr>
+<tr>
+<td>MARKET_CODE</td>
+<td>Market Code(&#39;BTCUSDT&#39; e.g)</td>
+<td>Yes</td>
+<td>-</td>
+</tr>
+<tr>
+<td>PAGE_NUMBER</td>
+<td>Page Number</td>
+<td>No</td>
+<td>1</td>
+</tr>
+</tbody></table>
+
+<p>or to get orders from all available markets:</p>
+
+<p><code>GET https://platform.andx.one/api/v1/orders/&lt;ACCOUNT_NAME&gt;/&lt;STATUS&gt;/&lt;PAGE_NUMBER&gt;/</code></p>
+<h3 id='url-parameters-3'>URL Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Required</th>
+<th>Default</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>ACCOUNT_NAME</td>
+<td>Name of the account to retrieve</td>
+<td>Yes</td>
+<td>-</td>
+</tr>
+<tr>
+<td>STATUS</td>
+<td>Order status(OPEN = &quot;O&quot;, CLOSED = &quot;C&quot;, ALL = &quot;A&quot;)</td>
+<td>Yes</td>
+<td>-</td>
+</tr>
+<tr>
+<td>PAGE_NUMBER</td>
+<td>Page Number</td>
+<td>No</td>
+<td>1</td>
+</tr>
+</tbody></table>
+<h3 id='enum-in-response-properties'>Enum in Response Properties</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>channel_code</td>
+<td>W: Web, M: Mobile</td>
+</tr>
+<tr>
+<td>buy_sell</td>
+<td>B: Buy, S: Sell</td>
+</tr>
+<tr>
+<td>status</td>
+<td>O: OPEN, C: CLOSED, A: ALL</td>
+</tr>
+</tbody></table>
+<h2 id='get-order-status'>Get Order Status</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s">"https://platform.andx.one/api/v1/order_status/122/"</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'ACCESS-USER'</span><span class="p">:</span> <span class="s">"your.username"</span><span class="p">,</span>
+    <span class="s">'ACCESS-PASSPHRASE'</span><span class="p">:</span> <span class="s">"your.passphrase"</span><span class="p">,</span>
+    <span class="s">'ACCESS-TIMESTAMP'</span><span class="p">:</span> <span class="s">"timestamp"</span><span class="p">,</span>
+    <span class="s">'ACCESS-SIGN'</span><span class="p">:</span> <span class="s">"signature"</span><span class="p">,</span>
+    <span class="s">'ACCESS-KEY'</span><span class="p">:</span> <span class="s">"your.apikey"</span><span class="p">,</span>
+    <span class="s">'content-type'</span><span class="p">:</span> <span class="s">"application/json"</span>
+    <span class="p">}</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s">"GET"</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">text</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="nt">-H</span> <span class="s2">"cache-control: no-cache"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-USER: your.username"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-PASSPHRASE: your.passphrase"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-TIMESTAMP: timestamp"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-SIGN: signature"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-KEY: your.apikey"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"content-type: application/json"</span> <span class="se">\</span>
+     https://platform.andx.one/api/v1/order_status/122/
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"order"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"order_number"</span><span class="p">:</span><span class="w"> </span><span class="mi">54259</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"account_number"</span><span class="p">:</span><span class="w"> </span><span class="mi">109</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"order_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"limit"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"market_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTCUSDT"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"base_currency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BTC"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"counter_currency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USDT"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"channel_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"W"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"40683.54"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"volume"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.01000000"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"volume_executed"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.01000000"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"volume_remaining"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.00000000"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"buy_sell"</span><span class="p">:</span><span class="w"> </span><span class="s2">"S"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"F"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"add_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2018-05-10 11:23:22.710724+00:00"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"update_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2018-05-10 11:23:23.710724+00:00"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"total"</span><span class="p">:</span><span class="w"> </span><span class="s2">"406.83"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"avg_price"</span><span class="p">:</span><span class="w"> </span><span class="s2">"40683.54"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"client_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"post_only"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"cancelable"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"fee_amount"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0E-16"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint retrieves the status of a given order.</p>
+<h3 id='http-request-3'>HTTP Request</h3>
+<p><code>GET https://platform.andx.one/api/v1/order_status/&lt;ORDER_NUMBER&gt;/</code></p>
+<h3 id='url-parameters-4'>URL Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>ORDER_NUMBER</td>
+<td>Order number</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<h3 id='enum-in-response-properties-2'>Enum in Response Properties</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>channel_code</td>
+<td>W: Web, M: Mobile</td>
+</tr>
+<tr>
+<td>buy_sell</td>
+<td>B: Buy, S: Sell</td>
+</tr>
+<tr>
+<td>status</td>
+<td>NEW: N, PARTIALLY FILLED: P, FILLED: F, CANCELED: C, REJECTED: R</td>
+</tr>
+</tbody></table>
+<h2 id='create-order'>Create Order</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s">"https://platform.andx.one/api/v1/orders/"</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'ACCESS-USER'</span><span class="p">:</span> <span class="s">"your.username"</span><span class="p">,</span>
+    <span class="s">'ACCESS-PASSPHRASE'</span><span class="p">:</span> <span class="s">"your.passphrase"</span><span class="p">,</span>
+    <span class="s">'ACCESS-TIMESTAMP'</span><span class="p">:</span> <span class="s">"timestamp"</span><span class="p">,</span>
+    <span class="s">'ACCESS-SIGN'</span><span class="p">:</span> <span class="s">"signature"</span><span class="p">,</span>
+    <span class="s">'ACCESS-KEY'</span><span class="p">:</span> <span class="s">"your.apikey"</span><span class="p">,</span>
+    <span class="s">'content-type'</span><span class="p">:</span> <span class="s">"application/json"</span>
+    <span class="p">}</span>
+
+<span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'order_type'</span><span class="p">:</span> <span class="s">"limit"</span><span class="p">,</span>
+    <span class="s">'market_code'</span><span class="p">:</span> <span class="s">"BTCUSDT"</span><span class="p">,</span>
+    <span class="s">'volume'</span><span class="p">:</span> <span class="s">"10000"</span><span class="p">,</span>
+    <span class="s">'buy_sell'</span><span class="p">:</span> <span class="s">"B"</span><span class="p">,</span>
+    <span class="s">'price'</span><span class="p">:</span> <span class="s">"9300"</span><span class="p">,</span>
+    <span class="s">'client_id'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s">'post_only'</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+    <span class="s">'account_name'</span><span class="p">:</span> <span class="s">"Main"</span>
+    <span class="p">}</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s">"POST"</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">text</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="nt">-H</span> <span class="s2">"cache-control: no-cache"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-USER: your.username"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-PASSPHRASE: your.passphrase"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-TIMESTAMP: timestamp"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-SIGN: signature"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-KEY: your.apikey"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"content-type: application/json"</span> <span class="se">\</span>
+     <span class="nt">-X</span> POST <span class="se">\</span>
+     <span class="nt">--data</span> <span class="s1">'{"order_type": "limit", "market_code": "BTCUSDT", "volume": "10000", "buy_sell": "B", "price": "9300", "client_id": 0, "post_only": false, "account_name": "Main"}'</span> <span class="se">\</span>
+     https://platform.andx.one/api/v1/orders/
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this(When order created successfully):</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"order_number"</span><span class="p">:</span><span class="w"> </span><span class="mi">54264</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this(When an error occurred):</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"error"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"reason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_owner_different"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"status_code"</span><span class="p">:</span><span class="w"> </span><span class="mi">1101</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint allows you to create an order.</p>
+<h3 id='http-request-4'>HTTP Request</h3>
+<p><code>POST https://platform.andx.one/api/v1/orders/</code></p>
+<h3 id='order-properties'>Order Properties</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>order_type</td>
+<td>String</td>
+<td>Yes</td>
+<td>&quot;limit&quot; or &quot;market&quot;</td>
+</tr>
+<tr>
+<td>market_code</td>
+<td>String</td>
+<td>Yes</td>
+<td>Market Code(&quot;BTCUSDT&quot; e.g)</td>
+</tr>
+<tr>
+<td>volume</td>
+<td>String</td>
+<td>Yes</td>
+<td>Volume (&quot;0.01&quot; e.g)</td>
+</tr>
+<tr>
+<td>buy_sell</td>
+<td>String</td>
+<td>Yes</td>
+<td>&quot;B&quot; or &quot;S&quot;</td>
+</tr>
+<tr>
+<td>price</td>
+<td>String</td>
+<td>Yes</td>
+<td>Price (&quot;40775.44&quot; e.g, &quot;0&quot; for market orders)</td>
+</tr>
+<tr>
+<td>client_id</td>
+<td>Integer</td>
+<td>No</td>
+<td>Client Id(Default = 0)</td>
+</tr>
+<tr>
+<td>post_only</td>
+<td>Boolean</td>
+<td>No</td>
+<td>Post Only(Default = false)</td>
+</tr>
+<tr>
+<td>account_name</td>
+<td>String</td>
+<td>Yes</td>
+<td>Account Name</td>
+</tr>
+</tbody></table>
+<h2 id='cancel-order'>Cancel Order</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s">"https://platform.andx.one/api/v1/cancel_order/122/"</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'ACCESS-USER'</span><span class="p">:</span> <span class="s">"your.username"</span><span class="p">,</span>
+    <span class="s">'ACCESS-PASSPHRASE'</span><span class="p">:</span> <span class="s">"your.passphrase"</span><span class="p">,</span>
+    <span class="s">'ACCESS-TIMESTAMP'</span><span class="p">:</span> <span class="s">"timestamp"</span><span class="p">,</span>
+    <span class="s">'ACCESS-SIGN'</span><span class="p">:</span> <span class="s">"signature"</span><span class="p">,</span>
+    <span class="s">'ACCESS-KEY'</span><span class="p">:</span> <span class="s">"your.apikey"</span><span class="p">,</span>
+    <span class="s">'content-type'</span><span class="p">:</span> <span class="s">"application/json"</span>
+    <span class="p">}</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s">"POST"</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">{},</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">text</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="nt">-H</span> <span class="s2">"cache-control: no-cache"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-USER: your.username"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-PASSPHRASE: your.passphrase"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-TIMESTAMP: timestamp"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-SIGN: signature"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-KEY: your.apikey"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"content-type: application/json"</span> <span class="se">\</span>
+     <span class="nt">-X</span> POST <span class="se">\</span>
+     <span class="nt">--data</span> <span class="s1">'{}'</span> <span class="se">\</span>
+     https://platform.andx.one/api/v1/cancel_order/122/
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this(When order cancelled successfully):</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"order_cancel_request_submitted"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this(When an error occurred):</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"error"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"reason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"order_not_found"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"status_code"</span><span class="p">:</span><span class="w"> </span><span class="mi">1201</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint allows you to cancel an order.</p>
+<h3 id='http-request-5'>HTTP Request</h3>
+<p><code>POST https://platform.andx.one/api/v1/cancel_order/&lt;ORDER_NUMBER&gt;/</code></p>
+<h3 id='url-parameters-5'>URL Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>ORDER_NUMBER</td>
+<td>Order number</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<h2 id='create-withdraw-request'>Create Withdraw Request</h2><div class="highlight"><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s">"https://platform.andx.one/api/v1/withdrawal/request/"</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'ACCESS-USER'</span><span class="p">:</span> <span class="s">"your.username"</span><span class="p">,</span>
+    <span class="s">'ACCESS-PASSPHRASE'</span><span class="p">:</span> <span class="s">"your.passphrase"</span><span class="p">,</span>
+    <span class="s">'ACCESS-TIMESTAMP'</span><span class="p">:</span> <span class="s">"timestamp"</span><span class="p">,</span>
+    <span class="s">'ACCESS-SIGN'</span><span class="p">:</span> <span class="s">"signature"</span><span class="p">,</span>
+    <span class="s">'ACCESS-KEY'</span><span class="p">:</span> <span class="s">"your.apikey"</span><span class="p">,</span>
+    <span class="s">'content-type'</span><span class="p">:</span> <span class="s">"application/json"</span>
+    <span class="p">}</span>
+
+<span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'currency_code'</span><span class="p">:</span> <span class="s">"XRP"</span><span class="p">,</span>
+    <span class="s">'amount'</span><span class="p">:</span> <span class="s">"100.25"</span><span class="p">,</span>
+    <span class="s">'alias'</span><span class="p">:</span> <span class="s">"alias_name"</span>
+    <span class="p">}</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s">"POST"</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">text</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="nt">-H</span> <span class="s2">"cache-control: no-cache"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-USER: your.username"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-PASSPHRASE: your.passphrase"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-TIMESTAMP: timestamp"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-SIGN: signature"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"ACCESS-KEY: your.apikey"</span> <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"content-type: application/json"</span> <span class="se">\</span>
+     <span class="nt">-X</span> POST <span class="se">\</span>
+     <span class="nt">--data</span> <span class="s1">'{"currency_code": "XRP", "amount": "100.25", "alias": "alias_name"}'</span> <span class="se">\</span>
+     https://platform.andx.one/api/v1/withdrawal/request/
+</code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this(When withdraw request created successfully):</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Your withdraw request is processing."</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<blockquote>
+<p>The above command returns JSON structured like this(When an error occurred):</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"error"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"reason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Withdraw address not found"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"status_code"</span><span class="p">:</span><span class="w"> </span><span class="mi">1319</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint allows you to create a withdraw request to your saved addresses. Make sure you have a withdraw address with the given alias.</p>
+<h3 id='http-request-6'>HTTP Request</h3>
+<p><code>POST https://platform.andx.one/api/v1/withdrawal/request/</code></p>
+<h3 id='order-properties-2'>Order Properties</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>currency_code</td>
+<td>String</td>
+<td>Yes</td>
+<td>Currency Code(&quot;XRP&quot; e.g)</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>String</td>
+<td>Yes</td>
+<td>Amount (&quot;100.25&quot; e.g)</td>
+</tr>
+<tr>
+<td>alias</td>
+<td>String</td>
+<td>Yes</td>
+<td>Alias</td>
+</tr>
+</tbody></table>
+<h1 id='response'>Response</h1>
+<p>ANDX API returns every response as described below with HTTP status code 200</p>
+
+<ul>
+<li>Successfully responses contain status code as <strong>success</strong> and data(result of the request):</li>
+</ul>
+
+<p><code>
+ {
+   &quot;status&quot;: &quot;success&quot;,
+   &quot;data&quot;: {
+     ...
+   }
+ }
+</code></p>
+
+<ul>
+<li>Faulty responses contain status code as <strong>error</strong> and a reason and status code which describes the error and an empty data:</li>
+</ul>
+
+<p><code>{
+   &quot;status&quot;: &quot;error&quot;,
+   &quot;reason&quot;: &quot;account_owner_different&quot;,
+   &quot;status_code&quot;: 1101,
+   &quot;data&quot;: {}
+ }</code></p>
+
+<p>Other Errors will be return with HTTP codes below:</p>
+
+<table><thead>
+<tr>
+<th>HTTP Code</th>
+<th>Meaning</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>400</td>
+<td>Bad Request -- This response means that server could not understand the request due to invalid syntax</td>
+</tr>
+<tr>
+<td>401</td>
+<td>Unauthorized -- Authentication is needed to get requested response. This is similar to 403, but in this case, authentication is possible.</td>
+</tr>
+<tr>
+<td>403</td>
+<td>Forbidden -- Client does not have access rights to the content so server is refusing to give proper response.</td>
+</tr>
+<tr>
+<td>404</td>
+<td>Not Found -- Server cannot find the requested resource.</td>
+</tr>
+<tr>
+<td>405</td>
+<td>Method Not Allowed -- The request method is known by the server but has been disabled and cannot be used. Double check your method type (i.e. GET, POST, PUT, DELETE)</td>
+</tr>
+<tr>
+<td>429</td>
+<td>Too Many Requests -- The user has sent too many requests in a given amount of time (&quot;rate limiting&quot;).</td>
+</tr>
+<tr>
+<td>500</td>
+<td>Internal Server Error -- The server has encountered a situation it doesn&#39;t know how to handle.</td>
+</tr>
+<tr>
+<td>503</td>
+<td>Service Unavailable -- The server is not ready to handle the request. Common causes are a server that is down for maintenance or that is overloaded.</td>
+</tr>
+</tbody></table>
+
+      </div>
+      <div class="dark-box">
+          <div class="lang-selector">
+                <a href="#" data-language-name="shell">shell</a>
+                <a href="#" data-language-name="python">python</a>
+                <a href="#" data-language-name="javascript">javascript</a>
+          </div>
+      </div>
+    </div>
+  </body>
+</html>

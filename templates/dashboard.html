@@ -1,0 +1,1339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>CryptoBot — 24/7 Scalper</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- TradingView's lightweight-charts — used for the per-coin entry/exit panel.
+     5kB gzipped, zero dependencies. CDN load is fine since the dashboard already
+     requires an internet-connected browser. -->
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+  :root{
+    --bg:#0a0e14;--panel:#11161d;--panel2:#161c25;--border:#1f2731;
+    --text:#e6e9ee;--muted:#8a94a3;--green:#3fbf6f;--red:#e35858;
+    --accent:#ffae00;--accent2:#7ad7ff;
+    --mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;font-size:14px}
+  header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,#0d121a, #0a0e14)}
+  h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.5px}
+  h1 span{color:var(--accent);font-weight:400}
+  .badge{padding:3px 10px;border:1px solid var(--border);border-radius:999px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .badge.live{color:var(--accent);border-color:var(--accent)}
+  .badge.sim{color:var(--accent2);border-color:var(--accent2)}
+  main{display:grid;grid-template-columns:1fr 380px;gap:14px;padding:14px}
+  @media (max-width:1000px){ main{grid-template-columns:1fr} }
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px}
+  .panel h2{margin:0 0 10px 0;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .stat{background:var(--panel2);padding:10px 12px;border-radius:8px;min-width:120px;flex:1}
+  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .stat .v{font-family:var(--mono);font-size:18px;margin-top:4px}
+  .stat .v.green{color:var(--green)} .stat .v.red{color:var(--red)}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:7px 13px;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.go{background:var(--green);border-color:var(--green);color:#fff}
+  button.stop{background:var(--red);border-color:var(--red);color:#fff}
+  button.warn{background:transparent;border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+  th{text-align:left;color:var(--muted);font-weight:400;padding:6px 8px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:1px;font-size:10px}
+  td{padding:7px 8px;border-bottom:1px solid var(--border)}
+  td.g{color:var(--green)} td.r{color:var(--red)}
+  input[type=range]{width:100%}
+  .log{height:280px;overflow-y:auto;background:#0b1018;border:1px solid var(--border);border-radius:6px;padding:8px;font-family:var(--mono);font-size:11px;line-height:1.55}
+  .log .l{display:grid;grid-template-columns:60px 70px 1fr;gap:6px}
+  .log .t{color:var(--muted)} .log .ty{color:var(--accent2)}
+  .log .l.buy .ty{color:var(--green)} .log .l.sell .ty{color:var(--accent)}
+  .log .l.loss .ty{color:var(--red)} .log .l.err .ty{color:var(--red)}
+  .universe{display:flex;flex-wrap:wrap;gap:5px}
+  .universe span{background:var(--panel2);padding:3px 7px;border-radius:4px;font-family:var(--mono);font-size:11px;border:1px solid var(--border)}
+  .ctrl{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+  .ctrl label{font-size:12px;color:var(--muted)}
+  .slider-block{margin:12px 0}
+  .slider-block .lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .slider-block .val{font-family:var(--mono);color:var(--accent)}
+  small.dim{color:var(--muted)}
+  .pill{display:inline-block;background:var(--panel2);padding:2px 7px;border-radius:99px;font-size:10px;font-family:var(--mono);border:1px solid var(--border)}
+  /* Exchange-style price ticks: green/red flash on change, smooth tweened numbers */
+  @keyframes tick-up   { 0%{background:rgba(63,191,111,.32)} 100%{background:transparent} }
+  @keyframes tick-down { 0%{background:rgba(227,88,88,.32)}  100%{background:transparent} }
+  .tick-up   { animation: tick-up   .35s ease-out; }
+  .tick-down { animation: tick-down .35s ease-out; }
+  .price-cell{transition:color .15s ease}
+  .price-cell.stale{color:var(--muted);opacity:.55}
+  .arrow{font-size:10px;margin-left:4px}
+  .arrow.up   { color:var(--green) }
+  .arrow.down { color:var(--red) }
+  /* Big sim-run button */
+  .sim-run-btn{
+    display:block;width:100%;padding:14px 18px;margin:4px 0 12px 0;
+    background:linear-gradient(180deg,#3fbf6f,#2da55c);
+    color:#fff;border:none;border-radius:10px;
+    font-size:15px;font-weight:700;letter-spacing:.5px;
+    cursor:pointer;transition:transform .08s ease, box-shadow .15s ease;
+    box-shadow:0 2px 8px rgba(63,191,111,.25);
+  }
+  .sim-run-btn:hover{ transform:translateY(-1px); box-shadow:0 4px 14px rgba(63,191,111,.4); border:none; color:#fff }
+  .sim-run-btn:active{ transform:translateY(0); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>CryptoBot <span>— 24/7 high-volume scalper</span></h1>
+    <small class="dim">Sibling to SRI MATA. Brain: signal → ML → Kelly → execution.</small>
+  </div>
+  <div class="row" style="gap:8px;align-items:center">
+    <span id="exchange-badge" class="badge">exchange ?</span>
+    <span id="mode-badge" class="badge sim">SIM</span>
+    <span id="risk-badge" class="badge">REGULAR</span>
+    <span id="status-badge" class="badge">idle</span>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT COLUMN -->
+  <div>
+    <div class="panel">
+      <h2>Controls</h2>
+      <div class="ctrl">
+        <button id="btn-start" class="go">START</button>
+        <button id="btn-stop"  class="stop">STOP</button>
+        <button id="btn-pause">PAUSE</button>
+        <button id="btn-manual" class="warn">Manual mode: OFF</button>
+        <button id="btn-sell-all" class="warn">Sell all</button>
+        <button id="btn-refresh-universe">Refresh universe</button>
+        <button id="btn-healthcheck">Exchange healthcheck</button>
+      </div>
+
+      <div class="ctrl" style="margin-top:8px;padding:8px 10px;background:var(--panel2);border:1px solid var(--border);border-radius:8px">
+        <label style="font-weight:600;color:var(--accent)">RISK MODE</label>
+        <select id="risk-mode" style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:13px">
+          <option value="CONSERVATIVE">CONSERVATIVE — picky, small size</option>
+          <option value="REGULAR" selected>REGULAR — balanced default</option>
+          <option value="AGGRESSIVE">AGGRESSIVE — many positions, diversified</option>
+        </select>
+        <label style="font-weight:600;color:var(--accent2);margin-left:12px">DIRECTION</label>
+        <select id="trade-mode" style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:13px">
+          <option value="both" selected>BOTH (long + short)</option>
+          <option value="long">LONG only</option>
+          <option value="short">SHORT only</option>
+        </select>
+        <small id="risk-desc" class="dim" style="flex:1;min-width:200px">Balanced — default crypto setup.</small>
+        <label style="margin-left:12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="dip-mode" style="cursor:pointer">
+          <strong style="color:var(--accent)">DIP MODE</strong>
+          <small class="dim">only quality oversold-at-support setups</small>
+        </label>
+      </div>
+
+      <div id="risk-params" style="margin:8px 0;padding:8px 10px;background:#0b1018;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);display:grid;grid-template-columns:repeat(4,1fr);gap:4px 12px"></div>
+
+      <!-- ANDX1 high-frequency engine: 0%-fee scalp ladder -->
+      <div class="ctrl" style="margin-top:8px;padding:10px;background:#0b1018;border:1px solid var(--border);border-radius:8px;flex-direction:column;align-items:stretch">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+          <strong style="color:var(--accent)">ANDX1 ENGINE</strong>
+          <span id="andx1-state" class="badge">checking…</span>
+          <span id="andx1-stats" class="dim" style="font-family:var(--mono);font-size:11px"></span>
+          <span id="andx1-last-action" class="dim" style="font-family:var(--mono);font-size:11px;margin-left:auto"></span>
+        </div>
+        <small class="dim" style="display:block;margin-bottom:6px">
+          0%-fee scalper on andX's native token. Polls andX ticker every 2s,
+          buys at any price, harvests at +0.3%, stops at -0.5%. Aims for the
+          high-frequency leg of the 200-trades/day plan. Auto-starts with the
+          trader; daily-loss pauses at -$20.
+        </small>
+        <div class="row" style="font-family:var(--mono);font-size:11px;flex-wrap:wrap;gap:6px">
+          <label style="display:inline-flex;align-items:center;gap:4px">notional $
+            <input id="andx1-notional" type="number" step="5" min="5" value="50" style="width:60px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:2px 4px;font-family:inherit"></label>
+          <label style="display:inline-flex;align-items:center;gap:4px">TP %
+            <input id="andx1-tp" type="number" step="0.05" min="0.1" max="2.0" value="0.30" style="width:60px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:2px 4px;font-family:inherit"></label>
+          <label style="display:inline-flex;align-items:center;gap:4px">SL %
+            <input id="andx1-sl" type="number" step="0.05" min="0.1" max="2.0" value="0.50" style="width:60px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:2px 4px;font-family:inherit"></label>
+          <button id="btn-andx1-apply">Apply</button>
+          <button id="btn-andx1-start" class="go" style="padding:3px 10px">Start</button>
+          <button id="btn-andx1-stop" class="stop" style="padding:3px 10px">Stop</button>
+        </div>
+      </div>
+
+      <!-- andX API credentials: where you paste your API key/secret to connect -->
+      <div class="ctrl" style="margin-top:8px;padding:10px;background:#0b1018;border:1px solid var(--accent);border-radius:8px;flex-direction:column;align-items:stretch">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <strong style="color:var(--accent)">andX API credentials</strong>
+          <span id="andx-cred-state" class="badge">checking…</span>
+          <small id="andx-cred-msg" class="dim" style="margin-left:auto"></small>
+        </div>
+        <small class="dim" style="margin-bottom:8px">
+          Paste your andX API key, secret, username, and passphrase below.
+          Get them at <code>platform.andx.one</code> → Account → API.
+          Saved to <code>andx_credentials.json</code> (gitignored, never logged).
+        </small>
+        <div style="display:grid;grid-template-columns:120px 1fr;gap:6px 10px;font-size:12px;align-items:center">
+          <label>API key</label>
+          <input id="cred-api-key" type="text" autocomplete="off" placeholder="leave empty to keep current"
+            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:11px">
+          <label>API secret</label>
+          <input id="cred-api-secret" type="password" autocomplete="off" placeholder="leave empty to keep current"
+            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:11px">
+          <label>Username</label>
+          <input id="cred-username" type="text" autocomplete="off" placeholder="your andX username"
+            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:11px">
+          <label>Passphrase</label>
+          <input id="cred-passphrase" type="password" autocomplete="off" placeholder="leave empty to keep current"
+            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:11px">
+          <label>Account name</label>
+          <input id="cred-account-name" type="text" autocomplete="off" placeholder="Main"
+            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:11px">
+          <label>Account # (optional)</label>
+          <input id="cred-account-number" type="text" autocomplete="off" placeholder="for /p/v1/ endpoints only"
+            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:11px">
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button id="btn-save-cred" class="go">Save credentials</button>
+          <button id="btn-test-cred">Test connection</button>
+          <button id="btn-clear-cred" class="warn">Clear</button>
+        </div>
+      </div>
+
+      <!-- andX session-cookie panel: unlocks the full ~120-coin universe -->
+      <div class="ctrl" style="margin-top:8px;padding:10px;background:#0b1018;border:1px solid var(--border);border-radius:8px;flex-direction:column;align-items:stretch">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <strong style="color:var(--accent2)">andX session (full universe)</strong>
+          <span id="andx-session-state" class="badge">checking…</span>
+          <small id="andx-session-age" class="dim" style="margin-left:auto"></small>
+        </div>
+        <small class="dim" style="margin-bottom:8px">
+          The documented andX API only trades BTC/ETH/ANDX1. Paste a curl from
+          your browser's DevTools (any request to platform.andx.one in Network →
+          right-click → Copy → Copy as cURL (bash)) to unlock the full coin
+          universe + shorting. Cookies persist across restarts. Re-paste after
+          you log out of andX.
+        </small>
+        <textarea id="andx-curl" placeholder='curl "https://platform.andx.one/p/v1/..." -H "..."' style="width:100%;height:80px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px;font-family:var(--mono);font-size:11px"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button id="btn-save-session">Save session</button>
+          <button id="btn-test-session">Test session</button>
+          <button id="btn-clear-session" class="warn">Clear</button>
+          <small id="andx-session-msg" class="dim" style="margin-left:8px"></small>
+        </div>
+      </div>
+
+      <div class="slider-block">
+        <div class="lbl"><span>Scalp gate override (0 = use mode's gate)</span><span class="val" id="gate-val">0</span></div>
+        <input type="range" id="scalp-gate" min="0" max="60" value="0">
+        <small class="dim">Manual override that can only TIGHTEN the active mode's gate. Higher = pickier setups.</small>
+      </div>
+
+      <div class="slider-block">
+        <div class="lbl"><span>Auto take-profit — fires when current batch gains exceed:</span><span class="val" id="atp-val">$100</span></div>
+        <input type="range" id="auto-tp" min="20" max="2000" step="20" value="100">
+        <div class="row">
+          <button id="btn-atp-arm">Arm auto-TP</button>
+          <button id="btn-atp-disarm">Disarm</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>LIVE — andX (real positions, real money)</h2>
+      <div class="row" id="port-stats"></div>
+
+      <h2 style="margin-top:14px">Open positions (live, mirror of andX)</h2>
+      <table id="positions-table">
+        <thead><tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Avg cost</th><th>Last</th><th>Unrealized</th><th>SL</th><th>TP</th><th>Tradable</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Per-coin chart panel: one chart per currently-tracked asset with
+         GREEN ENTRY / RED EXIT markers pulled from portfolio_live history. -->
+    <div class="panel" style="margin-top:14px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <h2 style="margin:0">Charts — entries & exits per coin</h2>
+        <button id="btn-charts-refresh" style="margin-left:auto">Refresh</button>
+      </div>
+      <small class="dim" style="display:block;margin-bottom:10px">
+        Real-time 5-minute candles for every held or recently-traded coin.
+        ▲ green = bot entered, ▼ red = bot exited. Hover for price + reason.
+      </small>
+      <div id="charts-container" style="display:grid;grid-template-columns:1fr;gap:14px"></div>
+    </div>
+
+    <!-- Per-coin strategy table: shows the tier-tuned settings the bot is
+         using right now for every coin it can trade. Click to override. -->
+    <div class="panel" style="margin-top:14px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <h2 style="margin:0">Per-coin strategy</h2>
+        <button id="btn-auto-tune" class="warn" style="margin-left:auto">
+          ✨ Apply BTC formula to all coins
+        </button>
+        <small id="auto-tune-msg" class="dim"></small>
+      </div>
+      <small class="dim" style="display:block;margin-bottom:10px">
+        Each coin's strategy is derived from THREE numbers: round-trip fee,
+        ATR (volatility), and audit-worst-loss. Click <strong>Apply BTC formula</strong>
+        to auto-tune every coin from its own data — same formula BTC uses.
+      </small>
+      <table id="strategy-table">
+        <thead><tr><th>Coin</th><th>Gate</th><th>SL clamp</th><th>TP clamp</th><th>Harvest</th><th>Min hold</th><th>Dip thr</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="panel" style="margin-top:14px;border-color:var(--accent2)">
+      <h2 style="color:var(--accent2)">SIM — paper account (Alpaca prices, never touches andX)</h2>
+
+      <button id="btn-sim-run" class="sim-run-btn">▶ START $100K SIM RUN</button>
+
+      <div class="ctrl" style="margin-bottom:10px">
+        <span id="sim-state" class="badge sim">enabled</span>
+        <button id="btn-sim-toggle" style="font-size:11px">Pause sim mirror</button>
+      </div>
+      <div class="row" id="sim-stats"></div>
+
+      <h2 style="margin-top:14px">Sim open positions</h2>
+      <table id="sim-positions-table">
+        <thead><tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Avg cost</th><th>Last</th><th>Unrealized</th><th>SL</th><th>TP</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>Last scan</h2>
+      <table id="scan-table">
+        <thead><tr><th>Symbol</th><th>Signal</th><th>Conf</th><th>Scalp</th><th>R/R</th><th>Price</th><th>Reasons</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <div class="panel">
+      <h2>Session</h2>
+      <div class="row" id="session-stats"></div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>Career stats</h2>
+      <div class="row" id="career-stats"></div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>Regime</h2>
+      <div id="regime-block" style="font-family:var(--mono);font-size:12px;color:var(--muted)"></div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>Universe (top vol)</h2>
+      <div class="universe" id="universe"></div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>Live log (andX)</h2>
+      <div class="log" id="log"></div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2 style="color:var(--accent2)">Sim log (paper account)</h2>
+      <div class="log" id="sim-log"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const POST = (url, body) => fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: body?JSON.stringify(body):null}).then(r=>r.json());
+const fmt = (n, p=2) => n==null||isNaN(n) ? '—' : Number(n).toLocaleString(undefined,{minimumFractionDigits:p, maximumFractionDigits:p});
+const fmtMoney = n => (n==null||isNaN(n)) ? '—' : '$' + fmt(n);
+const fmtQty = n => (n==null||isNaN(n)) ? '—' : Number(n).toLocaleString(undefined,{maximumFractionDigits:8});
+
+let GATE_DEBOUNCE = null;
+$('scalp-gate').addEventListener('input', e=>{
+  $('gate-val').textContent = e.target.value;
+  clearTimeout(GATE_DEBOUNCE);
+  GATE_DEBOUNCE = setTimeout(()=> POST('/api/trader/set_scalp_gate', {value:+e.target.value}), 200);
+});
+$('auto-tp').addEventListener('input', e=>{ $('atp-val').textContent = '$' + e.target.value; });
+$('btn-atp-arm').onclick = ()=> POST('/api/trader/set_auto_tp', {enabled:true, threshold:+$('auto-tp').value});
+$('btn-atp-disarm').onclick = ()=> POST('/api/trader/set_auto_tp', {enabled:false, threshold:+$('auto-tp').value});
+
+$('btn-start').onclick = ()=> POST('/api/trader/start');
+$('btn-stop').onclick  = ()=> POST('/api/trader/stop');
+$('btn-pause').onclick = ()=> POST('/api/trader/pause');
+$('btn-sell-all').onclick = async () => {
+  if (!confirm('Sell ALL open positions? This can take 30-60 seconds per non-BTC/ETH coin.')) return;
+  const btn = $('btn-sell-all');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Selling... (this can take a few minutes)';
+  try {
+    // Long timeout — each browser-driven sell can take 30-45s, and there
+    // may be 5-15 positions. AbortController with 15-minute cap.
+    const controller = new AbortController();
+    const killswitch = setTimeout(() => controller.abort(), 15 * 60 * 1000);
+    const r = await fetch('/api/trader/sell_all', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({reason: 'MANUAL SELL ALL'}),
+      signal: controller.signal,
+    }).then(x => x.json());
+    clearTimeout(killswitch);
+    showSellAllResult(r);
+  } catch (e) {
+    alert('Sell-all failed to complete: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+};
+
+function showSellAllResult(r){
+  // Build a modal that lists every position we attempted, with ok/fail and reason
+  let m = document.getElementById('sellall-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'sellall-modal';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:10000';
+    document.body.appendChild(m);
+  }
+  const results = (r && r.results) || [];
+  const soldRows = results.filter(x => x.ok);
+  const failedRows = results.filter(x => !x.ok);
+  const warn = r && r.browser_warning
+    ? `<div style="background:#f59e0b22;border:1px solid var(--accent);color:var(--accent);padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:12px">⚠ ${escapeHtml(r.browser_warning)}</div>`
+    : '';
+  const summary = `
+    <div style="display:flex;gap:14px;margin-bottom:10px;font-size:13px">
+      <div><strong style="color:var(--green)">${r.sold_count || 0}</strong> sold</div>
+      <div><strong style="color:var(--red)">${r.failed_count || 0}</strong> failed</div>
+      <div>PnL: <strong style="color:${(r.total_pnl||0)>=0?'var(--green)':'var(--red)'}">$${Number(r.total_pnl||0).toFixed(2)}</strong></div>
+    </div>`;
+  const rowHtml = (rows, statusHtml) => rows.map(x => `
+    <tr>
+      <td>${statusHtml}</td>
+      <td>${escapeHtml(x.symbol)}</td>
+      <td>${Number(x.qty).toPrecision(6)}</td>
+      <td>$${Number(x.market_value || 0).toFixed(2)}</td>
+      <td>${x.ok ? (x.pnl != null ? '$' + Number(x.pnl).toFixed(2) + ' (' + (Number(x.pnl_pct)>=0?'+':'') + Number(x.pnl_pct).toFixed(2) + '%)' : '—') : escapeHtml(String(x.error||'?').substring(0,140))}</td>
+      <td>${x.elapsed_s}s</td>
+    </tr>`).join('');
+  m.innerHTML = `
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px 20px;max-width:800px;width:90%;max-height:80vh;overflow-y:auto">
+      <div style="display:flex;align-items:center;margin-bottom:12px">
+        <h2 style="margin:0;color:var(--accent)">Sell-all result</h2>
+        <button id="sellall-close" style="margin-left:auto">Close</button>
+      </div>
+      ${warn}
+      ${summary}
+      <table style="width:100%;font-size:12px">
+        <thead><tr style="color:var(--muted);text-transform:uppercase;font-size:10px">
+          <th>Result</th><th>Symbol</th><th>Qty</th><th>Value</th><th>PnL / Error</th><th>Took</th>
+        </tr></thead>
+        <tbody>
+          ${rowHtml(soldRows, '<span style="color:var(--green)">✓ SOLD</span>')}
+          ${rowHtml(failedRows, '<span style="color:var(--red)">✗ FAIL</span>')}
+        </tbody>
+      </table>
+    </div>`;
+  m.style.display = 'flex';
+  document.getElementById('sellall-close').onclick = () => { m.style.display = 'none'; };
+}
+$('btn-refresh-universe').onclick = ()=> fetch('/api/universe/refresh', {method:'POST'});
+$('btn-sim-toggle').onclick = ()=> POST('/api/sim/toggle');
+$('btn-sim-run').onclick = async ()=> {
+  if (!confirm('Start a fresh $100,000 paper sim run? This resets any current sim PnL.')) return;
+  const r = await POST('/api/sim/start_run', {starting_cash: 100000});
+  if (r && r.sim) {
+    // Brief visual confirmation
+    $('btn-sim-run').textContent = '✓ SIM RUNNING ($100K)';
+    $('btn-sim-run').style.background = 'linear-gradient(180deg,#2da55c,#1f8a48)';
+    setTimeout(()=>{
+      $('btn-sim-run').textContent = '▶ START NEW $100K SIM RUN';
+      $('btn-sim-run').style.background = '';
+    }, 2200);
+  }
+};
+$('btn-healthcheck').onclick = async ()=> {
+  const r = await fetch('/api/exchange/healthcheck').then(r=>r.json());
+  alert(JSON.stringify(r, null, 2));
+};
+
+let MANUAL_ON = false;
+$('btn-manual').onclick = async ()=>{
+  MANUAL_ON = !MANUAL_ON;
+  await POST('/api/trader/manual_mode', {enabled: MANUAL_ON});
+  $('btn-manual').textContent = 'Manual mode: ' + (MANUAL_ON?'ON':'OFF');
+};
+
+$('risk-mode').addEventListener('change', async e => {
+  const mode = e.target.value;
+  const r = await POST('/api/trader/set_risk_mode', {mode});
+  if (r && r.params) renderRiskParams(mode, r.params);
+});
+
+$('trade-mode').addEventListener('change', async e => {
+  const mode = e.target.value;
+  await POST('/api/trader/set_trade_mode', {mode});
+});
+
+// ---- andX session-cookie panel (unlocks full coin universe) ----
+async function refreshAndxSession(){
+  try {
+    const r = await fetch('/api/andx/session').then(x=>x.json());
+    const badge = $('andx-session-state');
+    const age = $('andx-session-age');
+    if (r.loaded) {
+      badge.textContent = 'LOADED · ' + r.cookies_count + ' cookies';
+      badge.style.background = 'var(--green)';
+      badge.style.color = '#000';
+      const mins = Math.round((r.age_seconds||0)/60);
+      age.textContent = mins<60 ? `saved ${mins}m ago` : `saved ${Math.round(mins/60)}h ago`;
+    } else {
+      badge.textContent = 'NOT LOADED';
+      badge.style.background = 'var(--red)';
+      badge.style.color = '#fff';
+      age.textContent = 'bot limited to BTC/ETH/ANDX1';
+    }
+  } catch(e) {
+    $('andx-session-state').textContent = 'error';
+  }
+}
+$('btn-save-session').onclick = async () => {
+  const curl = $('andx-curl').value.trim();
+  if (!curl) { $('andx-session-msg').textContent = 'paste a curl first'; return; }
+  $('andx-session-msg').textContent = 'saving…';
+  const r = await POST('/api/andx/set_session', {curl});
+  if (r && r.ok) {
+    $('andx-session-msg').textContent = `saved · ${r.summary.cookies_count} cookies` +
+      (r.summary.has_csrftoken ? ' · csrftoken ✓' : ' · ⚠ no csrftoken') +
+      (r.summary.has_sessionid ? ' · sessionid ✓' : ' · ⚠ no sessionid');
+    $('andx-curl').value = '';
+    refreshAndxSession();
+  } else {
+    $('andx-session-msg').textContent = 'failed: ' + (r && r.error ? r.error : 'unknown');
+  }
+};
+$('btn-test-session').onclick = async () => {
+  $('andx-session-msg').textContent = 'testing…';
+  const r = await POST('/api/andx/test_session', {});
+  if (r && r.ok) {
+    $('andx-session-msg').textContent = '✓ session valid (HTTP ' + r.http_status + ')';
+  } else {
+    $('andx-session-msg').textContent = '✗ session FAILED — re-paste curl (HTTP ' + (r && r.http_status) + ')';
+  }
+};
+$('btn-clear-session').onclick = async () => {
+  if (!confirm('Clear andX session? Bot will fall back to BTC/ETH only.')) return;
+  await POST('/api/andx/clear_session', {});
+  $('andx-session-msg').textContent = 'cleared';
+  refreshAndxSession();
+};
+refreshAndxSession();
+setInterval(refreshAndxSession, 30000);
+
+// =====================================================================
+// andX API credentials panel
+// =====================================================================
+async function refreshAndxCreds(){
+  try {
+    const r = await fetch('/api/andx/credentials').then(x=>x.json());
+    const badge = $('andx-cred-state');
+    if (r.all_required_present) {
+      badge.textContent = 'CONNECTED';
+      badge.style.background = 'var(--green)';
+      badge.style.color = '#000';
+    } else {
+      badge.textContent = 'NOT CONFIGURED';
+      badge.style.background = 'var(--red)';
+      badge.style.color = '#fff';
+    }
+    // Populate placeholders with masked previews so user sees what's saved
+    const ph = (field, fallback) => {
+      const f = r[field] || {};
+      if (f.configured) return (f.preview || f.value || '') + '  (from ' + (f.source || '?') + ')';
+      return fallback;
+    };
+    $('cred-api-key').placeholder        = ph('api_key',        'leave empty to keep current');
+    $('cred-api-secret').placeholder     = ph('api_secret',     'leave empty to keep current');
+    $('cred-username').placeholder       = ph('username',       'your andX username');
+    $('cred-passphrase').placeholder     = ph('passphrase',     'leave empty to keep current');
+    $('cred-account-name').placeholder   = ph('account_name',   'Main');
+    $('cred-account-number').placeholder = ph('account_number', 'for /p/v1/ endpoints only');
+  } catch(e) {
+    $('andx-cred-state').textContent = 'error';
+  }
+}
+$('btn-save-cred').onclick = async () => {
+  const body = {
+    api_key:        $('cred-api-key').value.trim(),
+    api_secret:     $('cred-api-secret').value.trim(),
+    username:       $('cred-username').value.trim(),
+    passphrase:     $('cred-passphrase').value.trim(),
+    account_name:   $('cred-account-name').value.trim(),
+    account_number: $('cred-account-number').value.trim(),
+  };
+  $('andx-cred-msg').textContent = 'saving…';
+  const r = await POST('/api/andx/credentials', body);
+  if (r && r.ok) {
+    $('andx-cred-msg').textContent = '✓ saved';
+    // Clear the input boxes so the masked placeholders show
+    ['cred-api-key','cred-api-secret','cred-username','cred-passphrase',
+     'cred-account-name','cred-account-number'].forEach(id => $(id).value = '');
+    refreshAndxCreds();
+  } else {
+    $('andx-cred-msg').textContent = '✗ ' + (r && r.error ? r.error : 'unknown');
+  }
+};
+$('btn-test-cred').onclick = async () => {
+  $('andx-cred-msg').textContent = 'testing…';
+  const r = await POST('/api/andx/credentials/test', {});
+  if (r && r.ok) {
+    $('andx-cred-msg').textContent = `✓ connected — ${r.quote_asset} free=${(r.free||0).toFixed(2)} total=${(r.total||0).toFixed(2)}`;
+  } else {
+    $('andx-cred-msg').textContent = '✗ ' + (r && r.error ? r.error : 'unknown');
+  }
+};
+$('btn-clear-cred').onclick = async () => {
+  if (!confirm('Clear saved andX API credentials? Bot will revert to .env values.')) return;
+  const r = await POST('/api/andx/credentials/clear', {});
+  if (r && r.ok) {
+    $('andx-cred-msg').textContent = 'cleared';
+    refreshAndxCreds();
+  }
+};
+refreshAndxCreds();
+setInterval(refreshAndxCreds, 30000);
+
+// =====================================================================
+// ANDX1 0%-fee scalp engine — status poll + control buttons
+// =====================================================================
+async function refreshAndx1Engine(){
+  try {
+    const r = await fetch('/api/andx1_engine/status').then(x=>x.json());
+    if (r.error) { $('andx1-state').textContent = 'error'; return; }
+    const $s = $('andx1-state');
+    if (r.running) {
+      $s.textContent = r.state.toUpperCase() + (r.last_price ? ' · $' + Number(r.last_price).toPrecision(4) : '');
+      $s.style.background = r.state === 'cooldown' ? 'var(--accent)' : 'var(--green)';
+      $s.style.color = '#000';
+    } else {
+      $s.textContent = 'STOPPED';
+      $s.style.background = 'var(--red)';
+      $s.style.color = '#fff';
+    }
+    const wr = r.cycles > 0 ? Math.round(r.win_rate_pct) + '%' : '—';
+    const pnl = r.session_pnl != null ? (r.session_pnl>=0?'+':'') + '$' + Math.abs(r.session_pnl).toFixed(2) : '$0';
+    $('andx1-stats').textContent = `cycles: ${r.cycles} · W/L ${r.wins}/${r.losses} (${wr}) · pnl ${pnl}`;
+    const la = r.last_action ? r.last_action.toUpperCase() : '—';
+    let last = la;
+    if (r.last_action_at) {
+      const t = new Date(r.last_action_at).toLocaleTimeString();
+      last = `last: ${la} ${t}`;
+    }
+    if (r.cooldown_remaining_sec > 0) {
+      last += ` · cooldown ${Math.ceil(r.cooldown_remaining_sec)}s`;
+    }
+    if (r.last_error) {
+      last += ` · ${r.last_error.slice(0,60)}`;
+    }
+    $('andx1-last-action').textContent = last;
+  } catch(e) { console.warn('andx1 status failed', e); }
+}
+$('btn-andx1-start').onclick = async () => {
+  await POST('/api/andx1_engine/start', {});
+  refreshAndx1Engine();
+};
+$('btn-andx1-stop').onclick = async () => {
+  await POST('/api/andx1_engine/stop', {});
+  refreshAndx1Engine();
+};
+$('btn-andx1-apply').onclick = async () => {
+  await POST('/api/andx1_engine/configure', {
+    notional_usd: Number($('andx1-notional').value),
+    harvest_pct: Number($('andx1-tp').value) / 100,
+    sl_pct: Number($('andx1-sl').value) / 100,
+  });
+  refreshAndx1Engine();
+};
+refreshAndx1Engine();
+setInterval(refreshAndx1Engine, 3000);  // tight loop — engine state changes fast
+
+// =====================================================================
+// DIP MODE toggle
+// =====================================================================
+$('dip-mode').addEventListener('change', async e => {
+  const r = await POST('/api/trader/set_dip_mode', {enabled: e.target.checked});
+  if (r && r.dip_mode !== undefined) {
+    // dip_mode on → force_deploy auto-off, refresh dependent UI later
+    console.log('dip_mode set:', r);
+  }
+});
+
+// =====================================================================
+// Per-coin strategy table (read-only summary)
+// =====================================================================
+async function refreshStrategyTable(){
+  try {
+    const r = await fetch('/api/coins/strategies').then(x=>x.json());
+    const tbody = $('strategy-table').querySelector('tbody');
+    if (!tbody || !r.strategies) return;
+    const rows = Object.entries(r.strategies).sort();
+    tbody.innerHTML = rows.map(([coin, s]) => `
+      <tr>
+        <td><strong>${coin}</strong></td>
+        <td>${s.scalp_gate ?? '—'}</td>
+        <td>${((s.sl_pct_min||0)*100).toFixed(1)}–${((s.sl_pct_max||0)*100).toFixed(1)}%</td>
+        <td>${((s.tp_pct_min||0)*100).toFixed(1)}–${((s.tp_pct_max||0)*100).toFixed(1)}%</td>
+        <td>+${((s.harvest_threshold||0)*100).toFixed(1)}%</td>
+        <td>${s.min_hold_seconds ?? '—'}s</td>
+        <td>${s.dip_threshold ?? '—'}</td>
+      </tr>`).join('');
+  } catch(e) { console.warn('strategy table failed:', e); }
+}
+refreshStrategyTable();
+
+// Auto-tune button: applies the BTC formula to every coin, persists results
+$('btn-auto-tune').onclick = async () => {
+  if (!confirm('Apply the BTC formula to ALL coins?\n\nThis fetches recent ATR + audit-worst-loss for each coin and rewrites their SL/TP/harvest from those inputs. Persists to coin_strategies.json (you can revert by deleting that file).')) return;
+  $('auto-tune-msg').textContent = 'tuning…';
+  $('btn-auto-tune').disabled = true;
+  try {
+    const r = await POST('/api/coins/auto_tune', {persist: true});
+    if (r && r.ok) {
+      const n = Object.keys(r.results || {}).length;
+      $('auto-tune-msg').textContent = '✓ tuned ' + n + ' coins';
+      refreshStrategyTable();
+    } else {
+      $('auto-tune-msg').textContent = '✗ ' + (r && r.error ? r.error : 'unknown');
+    }
+  } catch(e) {
+    $('auto-tune-msg').textContent = '✗ ' + e.message;
+  } finally {
+    $('btn-auto-tune').disabled = false;
+  }
+};
+
+// =====================================================================
+// Per-coin charts with ENTRY / EXIT markers
+// Uses TradingView's lightweight-charts library (loaded via CDN above).
+// One chart per held/recently-traded coin, stacked vertically.
+// =====================================================================
+const CHARTS = {};   // symbol -> {chart, series, markers, lastTs}
+
+function fmtTime(t){
+  // lightweight-charts wants Unix seconds (number) for time. Parse ISO.
+  const d = new Date(t);
+  return Math.floor(d.getTime()/1000);
+}
+
+// Helpers for marker formatting + trade-detail popup
+function fmtPrice(p){
+  if (p === null || p === undefined) return '?';
+  const n = Number(p);
+  if (!isFinite(n)) return '?';
+  if (n >= 100) return '$' + n.toFixed(2);
+  if (n >= 1)   return '$' + n.toFixed(4);
+  return '$' + n.toPrecision(4);
+}
+function fmtPct(p){ return (p>=0?'+':'') + Number(p).toFixed(2) + '%'; }
+function fmtTimeShort(iso){
+  const d = new Date(iso);
+  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) +
+         ' · ' + d.toLocaleDateString([], {month:'short', day:'numeric'});
+}
+
+function buildEntryMarkerText(t){
+  // Compact text shown on the chart marker itself. Detail comes via click.
+  const parts = [];
+  const d = t.detail || {};
+  parts.push(t.side.toUpperCase());
+  if (d.is_dip) parts.push('DIP ' + (d.dip_score ?? '?'));
+  else if (d.scalp_score != null) parts.push('S ' + Math.round(d.scalp_score));
+  if (t.dollar_amount) parts.push('$' + Number(t.dollar_amount).toFixed(0));
+  return parts.join(' · ');
+}
+function buildExitMarkerText(t){
+  // Show NET (post-fee) P&L on the marker so what you see is what you keep.
+  const parts = [];
+  parts.push(t.reason || 'EXIT');
+  const pctShown = t.pnl_pct_net != null ? t.pnl_pct_net : t.pnl_pct;
+  const dollarShown = t.pnl_net != null ? t.pnl_net : t.pnl;
+  if (pctShown != null) parts.push(fmtPct(pctShown) + ' net');
+  if (dollarShown != null) parts.push((dollarShown>=0?'+':'') + '$' + Math.abs(dollarShown).toFixed(2));
+  return parts.join(' · ');
+}
+
+// === Trade-detail popup (global, reused across charts) ===
+function ensureTradePopup(){
+  let pop = document.getElementById('trade-popup');
+  if (pop) return pop;
+  pop = document.createElement('div');
+  pop.id = 'trade-popup';
+  pop.style.cssText = 'position:fixed;display:none;z-index:9999;max-width:380px;background:#0d121a;border:1px solid var(--accent);border-radius:8px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.6);font-size:12px;color:var(--text);line-height:1.45';
+  pop.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <strong id="tp-title" style="font-size:13px"></strong>
+      <button id="tp-close" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px">×</button>
+    </div>
+    <div id="tp-body"></div>`;
+  document.body.appendChild(pop);
+  pop.querySelector('#tp-close').onclick = () => { pop.style.display = 'none'; };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') pop.style.display = 'none'; });
+  // Close when clicking outside the popup
+  document.addEventListener('click', e => {
+    if (pop.style.display === 'none') return;
+    if (pop.contains(e.target)) return;
+    // Don't close if click was on a chart canvas (the chart click handler opens us)
+    if (e.target && e.target.tagName === 'CANVAS') return;
+    pop.style.display = 'none';
+  });
+  return pop;
+}
+function showTradePopup(symbol, trade, ev){
+  const pop = ensureTradePopup();
+  const $title = pop.querySelector('#tp-title');
+  const $body = pop.querySelector('#tp-body');
+  const tColor = trade.type === 'ENTRY' ? '#3fbf6f' :
+                 ((trade.pnl||0) >= 0 ? '#3fbf6f' : '#e35858');
+  $title.style.color = tColor;
+  if (trade.type === 'ENTRY') {
+    const d = trade.detail || {};
+    const reasons = (d.is_dip && d.dip_reasons?.length) ? d.dip_reasons : (d.scalp_reasons || []);
+    const reasonsHtml = reasons.length
+      ? '<ul style="margin:6px 0 0 0;padding-left:18px">' + reasons.map(r=>`<li>${escapeHtml(r)}</li>`).join('') + '</ul>'
+      : '<span class="dim">no signal reasons recorded</span>';
+    $title.textContent = `${symbol} · ${trade.side.toUpperCase()} ENTRY`;
+    $body.innerHTML = `
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-family:var(--mono);font-size:11px">
+        <span class="dim">Time:</span><span>${fmtTimeShort(trade.t)}</span>
+        <span class="dim">Price:</span><span>${fmtPrice(trade.price)} · qty ${Number(trade.qty||0).toPrecision(6)}</span>
+        <span class="dim">Size:</span><span>$${Number(trade.dollar_amount||0).toFixed(2)}</span>
+        <span class="dim">SL / TP:</span><span>${fmtPrice(trade.stop_loss)} / ${fmtPrice(trade.take_profit)}</span>
+        ${d.signal ? `<span class="dim">Signal:</span><span>${escapeHtml(d.signal)}</span>` : ''}
+        ${d.scalp_score != null ? `<span class="dim">Scalp score:</span><span>${Math.round(d.scalp_score)}/100</span>` : ''}
+        ${d.is_dip ? `<span class="dim" style="color:${tColor}">DIP score:</span><span style="color:${tColor}">${d.dip_score}/100</span>` : ''}
+        ${d.ml_confidence != null ? `<span class="dim">ML conf:</span><span>${(d.ml_confidence*100).toFixed(0)}%</span>` : ''}
+        ${d.weekly_trend ? `<span class="dim">Weekly:</span><span>${escapeHtml(d.weekly_trend)}</span>` : ''}
+        ${d.regime ? `<span class="dim">Regime:</span><span>${escapeHtml(d.regime)}</span>` : ''}
+      </div>
+      <div style="margin-top:8px"><strong style="font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1px">${d.is_dip ? 'Dip reasons' : 'Why bot entered'}</strong>${reasonsHtml}</div>
+      ${(d.rsi != null || d.macd_hist != null || d.stoch_k != null) ? `
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+          <strong style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Indicators at entry</strong>
+          <div style="font-family:var(--mono);font-size:11px;margin-top:4px">
+            ${d.rsi != null ? `RSI: ${Number(d.rsi).toFixed(1)} · ` : ''}
+            ${d.macd_hist != null ? `MACD hist: ${Number(d.macd_hist).toFixed(3)} · ` : ''}
+            ${d.stoch_k != null ? `Stoch K: ${Number(d.stoch_k).toFixed(1)} · ` : ''}
+            ${d.bb_pctb != null ? `BB %B: ${Number(d.bb_pctb).toFixed(2)} · ` : ''}
+            ${d.cmf != null ? `CMF: ${Number(d.cmf).toFixed(3)}` : ''}
+          </div>
+        </div>` : ''}
+      ${d.order_id ? `<div style="margin-top:8px"><span class="dim">order:</span> <span style="font-family:var(--mono);font-size:11px">${escapeHtml(String(d.order_id))}</span></div>` : ''}`;
+  } else {
+    const pnlColor = (trade.pnl_net != null ? trade.pnl_net : trade.pnl || 0) >= 0 ? '#3fbf6f' : '#e35858';
+    $title.textContent = `${symbol} · ${trade.side.toUpperCase()} EXIT — ${trade.reason || ''}`;
+    $body.innerHTML = `
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-family:var(--mono);font-size:11px">
+        <span class="dim">Time:</span><span>${fmtTimeShort(trade.t)}</span>
+        <span class="dim">Exit price:</span><span>${fmtPrice(trade.price)} · qty ${Number(trade.qty||0).toPrecision(6)}</span>
+        ${trade.entry_price ? `<span class="dim">Entry was:</span><span>${fmtPrice(trade.entry_price)}</span>` : ''}
+        <span class="dim">Gross P&L:</span><span>${trade.pnl != null ? (trade.pnl>=0?'+':'')+'$'+Math.abs(trade.pnl).toFixed(2) : '?'} ${trade.pnl_pct != null ? '('+fmtPct(trade.pnl_pct)+')' : ''}</span>
+        ${trade.fee_cost != null ? `<span class="dim">Fees (round-trip):</span><span style="color:#e35858">-$${Number(trade.fee_cost).toFixed(2)}</span>` : ''}
+        ${trade.pnl_net != null ? `<span class="dim"><strong>Net P&L:</strong></span><span style="color:${pnlColor}"><strong>${trade.pnl_net>=0?'+':''}$${Math.abs(trade.pnl_net).toFixed(2)} ${trade.pnl_pct_net != null ? '('+fmtPct(trade.pnl_pct_net)+')' : ''}</strong></span>` : ''}
+        <span class="dim">Reason:</span><span style="color:${pnlColor}">${escapeHtml(trade.reason || '?')}</span>
+      </div>
+      ${trade.order_id ? `<div style="margin-top:8px"><span class="dim">order:</span> <span style="font-family:var(--mono);font-size:11px">${escapeHtml(String(trade.order_id))}</span></div>` : ''}`;
+  }
+  // Position popup near the click
+  const x = Math.min((ev?.clientX || 100), window.innerWidth - 400);
+  const y = Math.min((ev?.clientY || 100), window.innerHeight - 260);
+  pop.style.left = (x + 10) + 'px';
+  pop.style.top = (y + 10) + 'px';
+  pop.style.display = 'block';
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function loadChartFor(symbol){
+  const sl = symbol.replaceAll('/', '_');
+  let card = document.getElementById('chart-card-' + sl);
+  if (!card) {
+    card = document.createElement('div');
+    card.id = 'chart-card-' + sl;
+    card.style.cssText = 'background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+        <strong style="font-size:14px">${symbol}</strong>
+        <span id="ch-last-${sl}" style="font-family:var(--mono);font-size:13px;color:var(--text)"></span>
+        <span id="ch-stats-${sl}" class="dim" style="font-family:var(--mono);font-size:11px"></span>
+        <span style="margin-left:auto;display:inline-flex;gap:12px;font-family:var(--mono);font-size:10px;color:var(--muted)">
+          <span><span style="color:#3fbf6f">▲</span> ENTRY (click for why)</span>
+          <span><span style="color:#3fbf6f">▼</span> exit win</span>
+          <span><span style="color:#e35858">▼</span> exit loss</span>
+        </span>
+      </div>
+      <div id="chart-${sl}" style="height:240px;width:100%"></div>
+      <div id="trades-${sl}" style="margin-top:8px;max-height:130px;overflow-y:auto"></div>`;
+    $('charts-container').appendChild(card);
+    const chartEl = card.querySelector('#chart-' + sl);
+    const chart = LightweightCharts.createChart(chartEl, {
+      layout: {background: {type: 'solid', color: '#0a0e14'}, textColor: '#8a94a3'},
+      grid: {vertLines: {color: '#1f2731'}, horzLines: {color: '#1f2731'}},
+      timeScale: {timeVisible: true, secondsVisible: false, borderColor: '#1f2731'},
+      rightPriceScale: {borderColor: '#1f2731'},
+      crosshair: {mode: 1},
+      handleScroll: true, handleScale: true,
+      height: 240,
+    });
+    const series = chart.addCandlestickSeries({
+      upColor: '#3fbf6f', downColor: '#e35858',
+      borderUpColor: '#3fbf6f', borderDownColor: '#e35858',
+      wickUpColor: '#3fbf6f', wickDownColor: '#e35858',
+    });
+    // Resize chart with container
+    new ResizeObserver(entries => {
+      for (const e of entries) chart.resize(e.contentRect.width, 240);
+    }).observe(chartEl);
+    CHARTS[symbol] = {chart, series, chartEl, tradesByTime: {}};
+    // Click handler — find nearest trade by time, show popup
+    chart.subscribeClick(param => {
+      if (!param || !param.time) return;
+      const map = CHARTS[symbol]?.tradesByTime || {};
+      const keys = Object.keys(map).map(Number).sort((a,b)=>a-b);
+      if (!keys.length) return;
+      // Find nearest within ±15 minutes (5m candles × 3)
+      let best = null, bestDist = 15 * 60 + 1;
+      for (const k of keys) {
+        const dist = Math.abs(k - param.time);
+        if (dist < bestDist) { bestDist = dist; best = k; }
+      }
+      if (best === null) return;
+      const trades = map[best] || [];
+      // If multiple trades at same time (entry+exit), pick the click-y one based on price
+      let chosen = trades[0];
+      if (trades.length > 1 && param.point) {
+        // Pick the one whose price is closer to clicked price
+        try {
+          const clickedPrice = series.coordinateToPrice(param.point.y);
+          chosen = trades.reduce((a,b) =>
+            Math.abs((a.price||0) - clickedPrice) < Math.abs((b.price||0) - clickedPrice) ? a : b);
+        } catch {}
+      }
+      // Use the original click event for positioning (lightweight-charts gives us time but not the DOM event;
+      // capture last mouse position via a separate listener)
+      showTradePopup(symbol, chosen, CHARTS[symbol]?.lastMouseEvent);
+    });
+    chartEl.addEventListener('mousemove', e => {
+      if (CHARTS[symbol]) CHARTS[symbol].lastMouseEvent = e;
+    });
+  }
+  // Fetch fresh data
+  try {
+    const enc = encodeURIComponent(symbol);
+    const r = await fetch('/api/charts/' + enc).then(x=>x.json());
+    if (r.error) { console.warn(symbol, r.error); return; }
+    const c = CHARTS[symbol];
+    if (!c) return;
+    const candles = (r.candles||[]).map(k => ({
+      time: fmtTime(k.t), open: k.o, high: k.h, low: k.l, close: k.c,
+    })).sort((a,b)=>a.time-b.time);
+    const seen = new Set();
+    const deduped = candles.filter(k => seen.has(k.time) ? false : (seen.add(k.time), true));
+    c.series.setData(deduped);
+
+    // Build markers + a time→trades map for click-to-detail
+    c.tradesByTime = {};
+    const markers = [];
+    let wins = 0, losses = 0, totalPnl = 0;
+    for (const t of (r.trades||[])) {
+      const ts = fmtTime(t.t);
+      (c.tradesByTime[ts] = c.tradesByTime[ts] || []).push(t);
+      if (t.type === 'ENTRY') {
+        markers.push({time: ts, position: 'belowBar',
+                      color: t.detail?.is_dip ? '#ffae00' : '#3fbf6f',
+                      shape: 'arrowUp',
+                      text: buildEntryMarkerText(t)});
+      } else {
+        // NET P&L (post-fee) determines win/loss color + summary, so the
+        // dashboard reflects what you actually pocket.
+        const pocketPnl = t.pnl_net != null ? t.pnl_net : (t.pnl || 0);
+        const won = pocketPnl >= 0;
+        if (won) wins++; else losses++;
+        totalPnl += pocketPnl;
+        markers.push({time: ts, position: 'aboveBar',
+                      color: won ? '#3fbf6f' : '#e35858',
+                      shape: 'arrowDown',
+                      text: buildExitMarkerText(t)});
+      }
+    }
+    // Dedup markers by (time, position)
+    markers.sort((a,b)=>a.time-b.time);
+    const seenM = new Set();
+    const dedupedM = markers.filter(m => {
+      const k = m.time + ':' + m.position;
+      return seenM.has(k) ? false : (seenM.add(k), true);
+    });
+    c.series.setMarkers(dedupedM);
+
+    // Header info — last price + win/loss summary
+    const lastC = deduped[deduped.length-1];
+    if (lastC) $('ch-last-' + sl).textContent = fmtPrice(lastC.close);
+    const winRate = (wins+losses) ? ((wins/(wins+losses))*100).toFixed(0) + '% win' : '';
+    const pnlStr = totalPnl !== 0 ? (totalPnl>=0?'+':'') + '$' + Math.abs(totalPnl).toFixed(2) : '';
+    $('ch-stats-' + sl).textContent = `${(r.trades||[]).length} trades · ${winRate}${pnlStr ? ' · ' + pnlStr : ''}`;
+
+    // Recent-trades mini-table (last 8, newest first, clickable)
+    const recent = (r.trades||[]).slice(-8).reverse();
+    const $trades = document.getElementById('trades-' + sl);
+    if ($trades) {
+      $trades.innerHTML = '<table style="width:100%;font-size:11px"><tbody>' +
+        recent.map((t,i) => {
+          const isEntry = t.type === 'ENTRY';
+          const color = isEntry ? (t.detail?.is_dip ? '#ffae00' : '#3fbf6f') :
+                                  ((t.pnl||0)>=0 ? '#3fbf6f' : '#e35858');
+          const sym = isEntry ? '▲' : '▼';
+          const label = isEntry ? buildEntryMarkerText(t) : buildExitMarkerText(t);
+          return `<tr class="row-trade" data-i="${i}" style="cursor:pointer">
+            <td style="color:${color};width:14px">${sym}</td>
+            <td style="color:var(--muted);width:90px">${fmtTimeShort(t.t)}</td>
+            <td style="font-family:var(--mono)">${fmtPrice(t.price)}</td>
+            <td>${escapeHtml(label)}</td>
+          </tr>`;
+        }).join('') + '</tbody></table>';
+      $trades.querySelectorAll('.row-trade').forEach((tr, idx) => {
+        tr.addEventListener('click', e => showTradePopup(symbol, recent[idx], e));
+        tr.addEventListener('mouseenter', () => tr.style.background = 'var(--panel)');
+        tr.addEventListener('mouseleave', () => tr.style.background = '');
+      });
+    }
+  } catch(e) { console.warn('chart load failed for', symbol, e); }
+}
+
+async function refreshAllCharts(){
+  try {
+    const r = await fetch('/api/charts/symbols').then(x=>x.json());
+    const wanted = new Set(r.symbols||[]);
+    // Remove charts for symbols no longer wanted
+    for (const sym of Object.keys(CHARTS)) {
+      if (!wanted.has(sym)) {
+        const sl = sym.replaceAll('/', '_');
+        const card = document.getElementById('chart-card-' + sl);
+        if (card) card.remove();
+        delete CHARTS[sym];
+      }
+    }
+    // Add/refresh wanted symbols
+    for (const sym of wanted) {
+      await loadChartFor(sym);
+    }
+  } catch(e) { console.warn('refreshAllCharts failed:', e); }
+}
+$('btn-charts-refresh').onclick = refreshAllCharts;
+refreshAllCharts();
+// Charts refresh every 20s (candles update slowly; entry/exit markers when trades happen)
+setInterval(refreshAllCharts, 20000);
+
+function renderRiskParams(mode, p){
+  if (!p) return;
+  $('risk-desc').textContent = p.description || '';
+  $('risk-badge').textContent = mode;
+  $('risk-badge').style.color = mode==='AGGRESSIVE' ? 'var(--red)' :
+                                 mode==='CONSERVATIVE' ? 'var(--accent2)' : 'var(--accent)';
+  $('risk-badge').style.borderColor = $('risk-badge').style.color;
+  const rows = [
+    ['Gate', p.scalp_gate],
+    ['Min conf', p.min_confidence + '%'],
+    ['Max positions', p.max_positions],
+    ['Max size', (p.max_position_pct*100).toFixed(0) + '%'],
+    ['SL clamp', (p.sl_pct_min*100).toFixed(1) + '–' + (p.sl_pct_max*100).toFixed(1) + '%'],
+    ['TP clamp', (p.tp_pct_min*100).toFixed(1) + '–' + (p.tp_pct_max*100).toFixed(1) + '%'],
+    ['Harvest at', (p.harvest_threshold*100).toFixed(1) + '%'],
+    ['Emergency stop', '-' + (p.emergency_stop_pct*100).toFixed(1) + '%'],
+    ['Min hold', p.min_hold_seconds + 's'],
+    ['Trail BE / Lock', (p.trail_be_pct*100).toFixed(1)+'% / '+(p.trail_lock_pct*100).toFixed(1)+'%'],
+    ['Re-entry CD', p.reentry_cooldown_seconds + 's'],
+    ['Scan every', p.scan_interval + 's'],
+  ];
+  $('risk-params').innerHTML = rows.map(([k,v]) =>
+    `<div><span style="color:var(--muted)">${k}:</span> <span style="color:var(--text)">${v}</span></div>`
+  ).join('');
+}
+
+function statHTML(k, v, cls){ return `<div class="stat"><div class="k">${k}</div><div class="v ${cls||''}">${v}</div></div>`; }
+
+// ==========================================
+// Real-time price feel (300ms tier)
+// ==========================================
+// Last-known state cached client-side so price updates can recompute PnL
+// locally without waiting for the slower 2s full-status poll.
+const PRICE_STATE = {
+  last: {},          // symbol -> last price seen (for flash + arrow direction)
+  positions: {},     // symbol -> {qty, avg_cost, side} from last full poll
+  cash: 0,
+  prev_ts: null,
+};
+
+function flashTick(el, dir){
+  if (!el) return;
+  el.classList.remove('tick-up','tick-down');
+  void el.offsetWidth;  // restart animation
+  el.classList.add(dir === 'up' ? 'tick-up' : 'tick-down');
+}
+
+function tweenNumber(el, target, formatter, ms=180){
+  if (!el) return;
+  const start = parseFloat(el.dataset.cur || '0') || 0;
+  const t0 = performance.now();
+  cancelAnimationFrame(el._tween);
+  const step = (now) => {
+    const t = Math.min(1, (now - t0) / ms);
+    const v = start + (target - start) * t;
+    el.textContent = formatter(v);
+    el.dataset.cur = String(target);
+    if (t < 1) el._tween = requestAnimationFrame(step);
+  };
+  el._tween = requestAnimationFrame(step);
+}
+
+async function fastTick(){
+  try {
+    const r = await fetch('/api/prices/stream').then(r=>r.json());
+    if (!r || !r.prices) return;
+    // Stale-frame guard: same ts twice = no fresh data (Alpaca dropped)
+    const stale = (r.ts === PRICE_STATE.prev_ts);
+    PRICE_STATE.prev_ts = r.ts;
+
+    // Update each visible position row's price + PnL
+    document.querySelectorAll('tr[data-sym]').forEach(row => {
+      const sym = row.dataset.sym;
+      const pdata = r.prices[sym] || r.prices[sym.replace('/USDT','/USD')] || r.prices[sym.replace('/USD','/USDT')];
+      const pxCell = row.querySelector('.price-cell');
+      const pnlCell = row.querySelector('.pnl-cell');
+      if (!pdata || !pxCell) return;
+      const newPx = pdata.price;
+      const prev = PRICE_STATE.last[sym];
+      // Flash + arrow
+      if (prev != null && newPx !== prev) {
+        flashTick(pxCell, newPx > prev ? 'up' : 'down');
+        const arrow = pxCell.querySelector('.arrow');
+        if (arrow) { arrow.textContent = newPx > prev ? '▲' : '▼'; arrow.className = 'arrow ' + (newPx > prev ? 'up' : 'down'); }
+      }
+      PRICE_STATE.last[sym] = newPx;
+      // Stale styling
+      pxCell.classList.toggle('stale', stale);
+      // Tween the price text
+      tweenNumber(pxCell.querySelector('.px-val'), newPx, v => Number(v).toPrecision(6), 200);
+      // Recompute PnL client-side from cached qty/avg_cost
+      const meta = PRICE_STATE.positions[sym];
+      if (meta && pnlCell) {
+        const unr = (newPx - meta.avg_cost) * meta.qty;
+        const unrPct = meta.avg_cost > 0 ? ((newPx - meta.avg_cost)/meta.avg_cost)*100 : 0;
+        const cls = unr >= 0 ? 'g' : 'r';
+        pnlCell.className = 'pnl-cell ' + cls;
+        tweenNumber(pnlCell, unr, v => `$${v>=0?'+':''}${v.toFixed(4)} (${unrPct.toFixed(2)}%)`, 120);
+      }
+    });
+  } catch(e) { /* swallow — fast tier never blocks the UI */ }
+}
+
+async function refresh(){
+  try{
+    const r = await fetch('/api/trader/status').then(r=>r.json());
+    const t = r.trader || {};
+    const p = r.portfolio || {};
+    const s = r.stats || {};
+    const reg = r.regime || {};
+
+    $('exchange-badge').textContent = 'exchange: ' + (p.quote_asset ? '· ' + p.quote_asset : '');
+    $('mode-badge').textContent = r.live_trading ? 'LIVE' : 'SIM';
+    $('mode-badge').className = 'badge ' + (r.live_trading ? 'live' : 'sim');
+    $('status-badge').textContent = t.running ? (t.paused ? 'paused' : (t.status || 'running')) : 'idle';
+
+    // Keep risk-mode selector + params panel in sync with server truth.
+    if (r.risk_mode && $('risk-mode').value !== r.risk_mode) {
+      $('risk-mode').value = r.risk_mode;
+    }
+    if (r.trade_mode && $('trade-mode').value !== r.trade_mode) {
+      $('trade-mode').value = r.trade_mode;
+    }
+    if (r.risk_mode && r.risk_mode_params) {
+      renderRiskParams(r.risk_mode, r.risk_mode_params);
+    }
+    // Sync DIP toggle from server truth
+    if (typeof r.dip_mode === 'boolean' && $('dip-mode')) {
+      if (document.activeElement !== $('dip-mode')) {
+        $('dip-mode').checked = r.dip_mode;
+      }
+    }
+    // Scalp gate slider reflects override (0 = mode default in effect)
+    const gateVal = r.scalp_gate_override == null ? 0 : r.scalp_gate_override;
+    if (document.activeElement !== $('scalp-gate')) {
+      $('scalp-gate').value = gateVal;
+      $('gate-val').textContent = gateVal === 0 ? '(mode: ' + (r.risk_mode_params?.scalp_gate ?? '?') + ')' : gateVal;
+    }
+
+    // Session
+    $('session-stats').innerHTML =
+      statHTML('Session PnL', fmtMoney(t.session_pnl), t.session_pnl>=0?'green':'red') +
+      statHTML('Trades', t.session_trades||0) +
+      statHTML('Wins', (t.session_wins||0) + ' / ' + (t.session_losses||0)) +
+      statHTML('Peak', fmtMoney(t.session_peak));
+
+    // Career
+    $('career-stats').innerHTML =
+      statHTML('Total PnL', fmtMoney(s.total_pnl), s.total_pnl>=0?'green':'red') +
+      statHTML('Trades', s.total_trades||0) +
+      statHTML('Wins', (s.total_wins||0) + ' / ' + (s.total_losses||0)) +
+      statHTML('Best', fmtMoney(s.best_trade), 'green') +
+      statHTML('Worst', fmtMoney(s.worst_trade), 'red') +
+      statHTML('HWM', fmtMoney(s.high_water_mark));
+
+    // Portfolio top stats (LIVE — andX)
+    $('port-stats').innerHTML =
+      statHTML('Cash (' + (p.quote_asset||'USDT') + ')', fmtMoney(p.cash)) +
+      statHTML('Equity', fmtMoney(p.total_portfolio_value)) +
+      statHTML('Unrealized', fmtMoney(p.unrealized_pnl), p.unrealized_pnl>=0?'green':'red') +
+      statHTML('Realized', fmtMoney(p.realized_pnl), p.realized_pnl>=0?'green':'red') +
+      statHTML('Trades', p.total_closed_trades||0) +
+      statHTML('Win rate', fmt(p.win_rate,1) + '%');
+
+    // LIVE positions — cache meta for fast-tier client-side PnL recompute
+    PRICE_STATE.positions = {};
+    const tbody = $('positions-table').querySelector('tbody');
+    tbody.innerHTML = '';
+    Object.entries(p.positions || {}).forEach(([sym, pos]) => {
+      PRICE_STATE.positions[sym] = {qty: pos.qty, avg_cost: pos.avg_cost, side: pos.side||'long'};
+      const cls = (pos.unrealized_pnl||0) >= 0 ? 'g' : 'r';
+      const sl = pos.stop_loss ? Number(pos.stop_loss).toPrecision(6) : '—';
+      const tp = pos.take_profit ? Number(pos.take_profit).toPrecision(6) : '—';
+      const tradable = pos.tradable === false ? '<span class="pill">dormant</span>' : '<span class="pill">yes</span>';
+      const px = pos.current_price ? Number(pos.current_price).toPrecision(6) : '—';
+      const side = (pos.side || 'long').toLowerCase();
+      const sideBadge = side === 'short'
+        ? '<span class="pill" style="border-color:var(--red);color:var(--red)">SHORT</span>'
+        : '<span class="pill" style="border-color:var(--green);color:var(--green)">LONG</span>';
+      tbody.innerHTML += `<tr data-sym="${sym}">
+        <td>${sym}</td>
+        <td>${sideBadge}</td>
+        <td>${fmtQty(pos.qty)}</td>
+        <td>${pos.avg_cost ? Number(pos.avg_cost).toPrecision(6) : '—'}</td>
+        <td class="price-cell"><span class="px-val" data-cur="${pos.current_price||0}">${px}</span><span class="arrow"></span></td>
+        <td class="pnl-cell ${cls}" data-cur="${pos.unrealized_pnl||0}">${fmtMoney(pos.unrealized_pnl)} (${fmt(pos.unrealized_pct,2)}%)</td>
+        <td>${sl}</td>
+        <td>${tp}</td>
+        <td>${tradable}</td>
+        <td>${pos.tradable !== false ? `<button onclick="sellOne('${sym}')">close</button>` : ''}</td>
+      </tr>`;
+    });
+
+    // SIM panel
+    const sim = r.portfolio_sim || {};
+    const sim_t = r.trader_sim || {};
+    $('sim-state').textContent = sim_t.enabled ? 'enabled' : 'paused';
+    $('sim-state').className = 'badge ' + (sim_t.enabled ? 'sim' : '');
+    $('sim-stats').innerHTML =
+      statHTML('Cash (' + (sim.quote_asset||'USD') + ')', fmtMoney(sim.cash)) +
+      statHTML('Equity', fmtMoney(sim.total_portfolio_value)) +
+      statHTML('Return', fmt(sim.total_return_pct,2) + '%', sim.total_return_pct>=0?'green':'red') +
+      statHTML('Unrealized', fmtMoney(sim.unrealized_pnl), sim.unrealized_pnl>=0?'green':'red') +
+      statHTML('Realized', fmtMoney(sim.realized_pnl), sim.realized_pnl>=0?'green':'red') +
+      statHTML('Session PnL', fmtMoney(sim_t.session_pnl), (sim_t.session_pnl||0)>=0?'green':'red') +
+      statHTML('Trades', sim.total_closed_trades||0) +
+      statHTML('Win rate', fmt(sim.win_rate,1) + '%');
+
+    const simBody = $('sim-positions-table').querySelector('tbody');
+    simBody.innerHTML = '';
+    Object.entries(sim.positions || {}).forEach(([sym, pos]) => {
+      // Also cache sim positions for fast tier (sym is unique per row regardless)
+      PRICE_STATE.positions[sym] = {qty: pos.qty, avg_cost: pos.avg_cost, side: pos.side||'long'};
+      const cls = (pos.unrealized_pnl||0) >= 0 ? 'g' : 'r';
+      const sl = pos.stop_loss ? Number(pos.stop_loss).toPrecision(6) : '—';
+      const tp = pos.take_profit ? Number(pos.take_profit).toPrecision(6) : '—';
+      const px = pos.current_price ? Number(pos.current_price).toPrecision(6) : '—';
+      const simSide = (pos.side || 'long').toLowerCase();
+      const simSideBadge = simSide === 'short'
+        ? '<span class="pill" style="border-color:var(--red);color:var(--red)">SHORT</span>'
+        : '<span class="pill" style="border-color:var(--green);color:var(--green)">LONG</span>';
+      simBody.innerHTML += `<tr data-sym="${sym}">
+        <td>${sym}</td>
+        <td>${simSideBadge}</td>
+        <td>${fmtQty(pos.qty)}</td>
+        <td>${Number(pos.avg_cost).toPrecision(6)}</td>
+        <td class="price-cell"><span class="px-val" data-cur="${pos.current_price||0}">${px}</span><span class="arrow"></span></td>
+        <td class="pnl-cell ${cls}" data-cur="${pos.unrealized_pnl||0}">${fmtMoney(pos.unrealized_pnl)} (${fmt(pos.unrealized_pct,2)}%)</td>
+        <td>${sl}</td>
+        <td>${tp}</td>
+      </tr>`;
+    });
+
+    // Universe
+    $('universe').innerHTML = (r.universe || []).map(s => `<span>${s}</span>`).join('');
+
+    // Regime
+    $('regime-block').innerHTML = `
+      regime: <span class="pill">${reg.regime || '—'}</span> &nbsp;
+      btc trend: <span class="pill">${reg.spy_trend || '—'}</span> &nbsp;
+      btc above sma50: <span class="pill">${reg.spy_above_sma50 ? 'yes' : 'no'}</span> &nbsp;
+      vol(atr%): <span class="pill">${fmt(reg.vix, 2)}</span> &nbsp;
+      bias: <span class="pill">${reg.market_bias || 'NEUTRAL'}</span>
+    `;
+  } catch(e) { console.error(e); }
+
+  // Scan results
+  try{
+    const sr = await fetch('/api/trader/scan_results').then(r=>r.json());
+    const tb = $('scan-table').querySelector('tbody');
+    tb.innerHTML = '';
+    (sr.results || []).slice(0, 10).forEach(r => {
+      tb.innerHTML += `<tr>
+        <td>${r.ticker}</td>
+        <td>${r.signal}</td>
+        <td>${fmt(r.confidence,1)}</td>
+        <td>${fmt(r.scalp_score,0)}</td>
+        <td>${fmt(r.risk_reward,2)}</td>
+        <td>${r.price ? Number(r.price).toPrecision(6) : '—'}</td>
+        <td>${(r.scalp_reasons || []).slice(0,3).join(', ')}</td>
+      </tr>`;
+    });
+  } catch(e){}
+
+  // Live log
+  try{
+    const lg = await fetch('/api/trader/log').then(r=>r.json());
+    const el = $('log');
+    const stickToBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 40;
+    el.innerHTML = (lg.log || []).slice(-150).map(e =>
+      `<div class="l ${e.type}"><span class="t">${e.time}</span><span class="ty">${e.type}</span><span>${e.message}</span></div>`
+    ).join('');
+    if (stickToBottom) el.scrollTop = el.scrollHeight;
+  } catch(e){}
+
+  // Sim log
+  try{
+    const lg = await fetch('/api/sim/log').then(r=>r.json());
+    const el = $('sim-log');
+    const stickToBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 40;
+    el.innerHTML = (lg.log || []).slice(-150).map(e =>
+      `<div class="l ${e.type}"><span class="t">${e.time}</span><span class="ty">${e.type}</span><span>${e.message}</span></div>`
+    ).join('');
+    if (stickToBottom) el.scrollTop = el.scrollHeight;
+  } catch(e){}
+}
+
+window.sellOne = function(sym){
+  if (!confirm('Close ' + sym + '?')) return;
+  POST('/api/trader/sell_one', {symbol: sym});
+};
+
+refresh();
+setInterval(refresh, 2000);
+// Fast tier: cheap price/PnL tick — 300ms so it feels like a real exchange
+setInterval(fastTick, 300);
+</script>
+</body>
+</html>
