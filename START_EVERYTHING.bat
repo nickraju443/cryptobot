@@ -51,12 +51,18 @@ exit /b 1
 :chrome_ok
 
 echo.
-echo  [1/3] Opening the andX Chrome window...
+echo  [1/4] Opening the andX Chrome window...
 echo        FIRST RUN: log into andX with YOUR account in that window.
 echo        It remembers you after that. LEAVE THE WINDOW OPEN.
 echo.
 
 start "" "%CHROME_EXE%" --remote-debugging-port=9222 --user-data-dir="%~dp0_andx_chrome_profile" --no-first-run --no-default-browser-check https://platform.andx.one/
+
+REM ---- Auto-update: always run the newest bot version ----
+if exist "%~dp0_update.ps1" (
+    echo  [2/4] Checking for bot updates...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0_update.ps1"
+)
 
 REM ---- Use an existing environment if there is one ----
 set "PYEXE="
@@ -94,7 +100,7 @@ pause
 exit /b 1
 
 :bootstrap
-echo  [2/3] FIRST RUN -- installing the bot's packages.
+echo  [3/4] FIRST RUN -- installing the bot's packages.
 echo        This takes 5-15 minutes and only happens once.
 echo        Let it finish. Do not close this window.
 echo.
@@ -129,7 +135,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "$d=[Environment]::GetFol
 if not errorlevel 1 echo  A "CryptoBot" icon was added to your Desktop -- use that from now on.
 
 echo.
-echo  [3/3] Starting the bot...
+echo  [4/4] Starting the bot...
 echo        Dashboard: http://localhost:5002  (opens automatically)
 echo.
 echo    - Keep the andX Chrome window OPEN. The bot trades through it.
