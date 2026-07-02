@@ -1097,7 +1097,8 @@ def _do_open(symbol: str, direction: str, signal_snapshot: dict, kelly: dict,
     Longs on andX-listed symbols go to BOTH live and sim."""
     # andX confirmed spot-only (Buy/Sell, no leverage) — never attempt live shorts.
     short_not_live = (direction == "short") and not EXEC_SUPPORTS_SHORT
-    tradable_live = _exec_tradable(symbol) and LIVE_TRADING and not short_not_live
+    tradable_live = (_exec_tradable(symbol) and LIVE_TRADING and not short_not_live
+                     and not trader.get("paper_only"))
     if not tradable_live:
         # Live skip → sim-only path
         if trader_sim["enabled"]:
@@ -1228,9 +1229,32 @@ def _scan_and_buy():
     quote = portfolio.get("quote_asset", "USDT")
     # andX minimum order is 5 USDT; below that no order can clear
     if cash < 5:
+        # No live capital. If andX credentials were never configured, keep
+        # scanning against the parallel SIM portfolio so paper trading works
+        # without any API keys (entries route sim-only via paper_only).
+        import andx_credentials
+        sim_p = None
+        if trader_sim["enabled"] and not andx_credentials.all_required_present():
+            try:
+                sim_p = portfolio_sim.get_portfolio_summary()
+            except Exception:
+                sim_p = None
+        if not sim_p or float(sim_p.get("cash") or 0) < 5:
+            with trader_lock:
+                trader["status"] = "Capital deployed — waiting for sells"
+                trader["paper_only"] = False
+            return
+        portfolio = sim_p
+        tradable_positions = {s: pos for s, pos in portfolio.get("positions", {}).items()
+                              if pos.get("tradable", True)}
+        cash = portfolio["cash"]
+        quote = portfolio.get("quote_asset", "USD")
         with trader_lock:
-            trader["status"] = "Capital deployed — waiting for sells"
-        return
+            trader["status"] = "PAPER MODE — no andX credentials, trading sim only"
+            trader["paper_only"] = True
+    else:
+        with trader_lock:
+            trader["paper_only"] = False
 
     # Universe = top-volume + favorites + already-held tradable symbols
     universe = list(get_universe())
