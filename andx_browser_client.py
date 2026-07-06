@@ -285,23 +285,35 @@ class AndxBrowserClient(BaseExchangeClient):
     # ----- balance / connectivity ------------------------------------
 
     def get_balance(self) -> Balance:
-        """Authoritative cash. Prefer the REST balance (HMAC-signed, fast)
-        because that endpoint works fine with API-key auth and the browser
-        is the slow path. Falls back to the browser session if REST fails."""
+        """Authoritative cash. Try the REST balance first (HMAC-signed, fast).
+        BUT andX's documented REST balance is a SEPARATE pool from the website
+        wallet: for many accounts it returns success with $0 even though the
+        platform wallet (what the logged-in browser sees, and what orders
+        actually draw from) is funded. So if REST reports nothing, fall back
+        to the browser session, which reads the real platform balance."""
+        rest_bal = None
         try:
-            return self._rest.get_balance()
+            rest_bal = self._rest.get_balance()
+            if rest_bal and (rest_bal.free > 0 or rest_bal.total > 0):
+                return rest_bal
         except Exception as e:
             logger.warning(f"andx_browser: REST balance failed ({e}); "
                            "trying browser")
+        # REST returned empty (or failed) — the logged-in browser is the
+        # source of truth for the platform wallet the bot actually trades.
         try:
             pw_bal = self._pw.get_balance()
-            return Balance(
-                quote_asset=pw_bal.quote_asset,
-                free=pw_bal.free, total=pw_bal.total,
-            )
+            if pw_bal and (pw_bal.free > 0 or pw_bal.total > 0):
+                logger.info(f"andx_browser: using browser balance "
+                            f"(REST empty): free={pw_bal.free}")
+                return Balance(
+                    quote_asset=pw_bal.quote_asset,
+                    free=pw_bal.free, total=pw_bal.total,
+                )
         except Exception as e:
             logger.error(f"andx_browser: browser balance also failed: {e}")
-            return Balance(quote_asset=self.quote_asset, free=0.0, total=0.0)
+        # Nothing had funds — return REST's answer (usually zeros).
+        return rest_bal or Balance(quote_asset=self.quote_asset, free=0.0, total=0.0)
 
     def is_connected(self) -> bool:
         """REST + Playwright must both be reachable."""

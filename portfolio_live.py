@@ -485,6 +485,19 @@ def get_portfolio_summary() -> dict:
         except Exception:
             cash = 0.0
 
+    # andX's documented REST balance is a SEPARATE pool from the website
+    # wallet — for many accounts it reads $0 even though the platform wallet
+    # (what the logged-in browser sees, and what orders actually draw from)
+    # is funded. If REST shows no cash, ask the exec client's get_balance(),
+    # which for the browser adapter reads the real platform balance.
+    if cash <= 0:
+        try:
+            bal = andx.get_balance()
+            if bal and float(getattr(bal, "free", 0) or 0) > 0:
+                cash = float(bal.free)
+        except Exception as e:
+            logger.debug(f"portfolio_live: browser cash fallback failed: {e}")
+
     positions_out: dict = {}
     total_value = cash
     total_unrealized = 0.0
