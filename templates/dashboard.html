@@ -542,9 +542,11 @@ async function refreshAndxCreds(){
   try {
     const r = await fetch('/api/andx/credentials').then(x=>x.json());
     const badge = $('andx-cred-state');
+    // Presence of fields does NOT mean they work — only a successful Test
+    // (btn-test-cred) proves andX accepts them. Don't claim CONNECTED here.
     if (r.all_required_present) {
-      badge.textContent = 'CONNECTED';
-      badge.style.background = 'var(--green)';
+      badge.textContent = 'SAVED — CLICK TEST';
+      badge.style.background = '#c98a00';
       badge.style.color = '#000';
     } else {
       badge.textContent = 'NOT CONFIGURED';
@@ -590,11 +592,18 @@ $('btn-save-cred').onclick = async () => {
 };
 $('btn-test-cred').onclick = async () => {
   $('andx-cred-msg').textContent = 'testing…';
+  const badge = $('andx-cred-state');
   const r = await POST('/api/andx/credentials/test', {});
   if (r && r.ok) {
     $('andx-cred-msg').textContent = `✓ connected — ${r.quote_asset} free=${(r.free||0).toFixed(2)} total=${(r.total||0).toFixed(2)}`;
+    badge.textContent = 'CONNECTED';
+    badge.style.background = 'var(--green)';
+    badge.style.color = '#000';
   } else {
     $('andx-cred-msg').textContent = '✗ ' + (r && r.error ? r.error : 'unknown');
+    badge.textContent = 'REJECTED';
+    badge.style.background = 'var(--red)';
+    badge.style.color = '#fff';
   }
 };
 $('btn-clear-cred').onclick = async () => {
