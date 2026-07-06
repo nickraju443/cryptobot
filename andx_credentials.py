@@ -178,12 +178,29 @@ def test_connection() -> dict:
         # pulling in the full client during early-startup config.
         from andx_client import AndxClient
         c = AndxClient()
-        bal = c.get_balance()
+        # Make the RAW signed request so we can tell an auth failure (401 ->
+        # None) apart from an authenticated-but-empty account. get_balance()
+        # swallows 401s and returns $0, which falsely reads as "connected".
+        data = c._get(f"/balance/{c.account}/", signed=True)
+        if data is None:
+            return {"ok": False,
+                    "error": ("andX rejected these credentials (401). The API "
+                              "secret or passphrase is wrong — even one character "
+                              "off is rejected. On andX, regenerate the API key and "
+                              "COPY-PASTE the key, secret, and passphrase exactly "
+                              "(do not type them from a screenshot).")}
+        if data.get("status") != "success":
+            return {"ok": False, "error": f"andX returned: {str(data)[:200]}"}
+        balances = (data.get("data") or {}).get("balances") or {}
+        b = balances.get(c.quote_asset) or {}
+        free = float(b.get("available_balance") or 0)
+        total = float(b.get("balance") or 0)
         return {
             "ok": True,
-            "quote_asset": bal.quote_asset,
-            "free": float(bal.free),
-            "total": float(bal.total),
+            "authenticated": True,
+            "quote_asset": c.quote_asset,
+            "free": free,
+            "total": total,
         }
     except Exception as e:
         return {"ok": False, "error": str(e)}
