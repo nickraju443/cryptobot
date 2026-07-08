@@ -214,6 +214,15 @@ trader_sim_lock = threading.Lock()
 # Per-position peak gain tracking (fade protection)
 _position_peaks: dict[str, float] = {}
 _sim_position_peaks: dict[str, float] = {}
+# Positions that have already been trimmed once (partial profit-take). Pruned
+# each cycle to only currently-held symbols, so a re-entry can trim again.
+_trimmed_positions: set[str] = set()
+# TRIM = take partial profit early and let the rest run. Fires ONCE per
+# position when NET gain enters [harvest*TRIM_TRIGGER_FRAC, harvest): sells
+# TRIM_FRACTION of the shares; the remainder rides the full SL/TP/harvest/
+# trail/fade/dump logic below.
+TRIM_FRACTION = 0.4          # sell 40% at the first target
+TRIM_TRIGGER_FRAC = 0.6      # first target = 60% of the full harvest threshold
 # Re-entry cooldown
 _sell_cooldowns: dict[str, tuple[datetime, int]] = {}
 
@@ -900,6 +909,10 @@ def _manage_open_positions():
     if not tradable:
         return
 
+    # Forget trim flags for positions we no longer hold (fully closed), so a
+    # fresh re-entry in the same symbol can be trimmed again.
+    _trimmed_positions.intersection_update(positions.keys())
+
     m = _mode()
 
     for symbol, pos in list(tradable.items()):
@@ -979,6 +992,23 @@ def _manage_open_positions():
         if tp_hit:
             _do_sell(symbol, sell_all=True, signal_snapshot=snapshot,
                      exit_reason="TAKE PROFIT HIT", entry_data=last_entry)
+            continue
+
+        # TRIM — take partial profit at the FIRST target and let the rest run.
+        # Fires once per position while NET gain is in the band below the full
+        # harvest. Banks TRIM_FRACTION of the shares; the remainder stays open
+        # and is still governed by every exit check below (harvest/trail/fade/
+        # dump/SL), so a winner keeps running and a reversal still gets cut.
+        pos_qty = float(pos.get("qty") or 0)
+        if (symbol not in _trimmed_positions and pos_qty > 0
+                and (_harvest * TRIM_TRIGGER_FRAC) <= net_gain < _harvest):
+            trim_qty = pos_qty * TRIM_FRACTION
+            trim_res = _do_sell(symbol, qty=trim_qty, sell_all=False,
+                                signal_snapshot=snapshot,
+                                exit_reason="TRIM (partial take-profit)",
+                                entry_data=last_entry)
+            if trim_res and "error" not in trim_res:
+                _trimmed_positions.add(symbol)
             continue
 
         # Harvest gains — fires when NET (post-fee) gain reaches the
