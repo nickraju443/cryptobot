@@ -805,6 +805,19 @@ class PlaywrightSession:
                 and (res.raw or {}).get("status_code") == 1210):
             logger.info("playwright_session: 1210 price-drift; refilling + retry")
             res = self._order_via_ui(page, ctx, body)
+        # SAFE retry: the click never fired the order POST (order_submitted
+        # False) and it timed out, so NOTHING was placed — re-attempt up to 2x
+        # to convert andX's flaky UI into a fill. If a POST DID fire we do NOT
+        # retry: the order may have gone through and a retry would double-buy.
+        elif (not res.ok and (res.raw or {}).get("timed_out")
+              and not (res.raw or {}).get("order_submitted")):
+            for attempt in (1, 2):
+                logger.info(f"playwright_session: order POST never fired — "
+                            f"safe retry {attempt}/2 for "
+                            f"{body.get('market_code', '?')}")
+                res = self._order_via_ui(page, ctx, body)
+                if res.ok or (res.raw or {}).get("order_submitted"):
+                    break
         return res
 
     def _order_via_fetch(self, page, body: dict) -> PWOrderResult:
@@ -1002,6 +1015,17 @@ class PlaywrightSession:
             return _ui_reject(body, base,
                               f"confirm button not found: {e}", page.url)
 
+        # Track whether the order POST actually left the browser. This lets
+        # the caller retry SAFELY — only when NO request fired — so a live
+        # order whose response was merely slow can never be double-placed.
+        submitted = {"v": False}
+        def _mark_submitted(req):
+            try:
+                if INSTANT_ORDER_PATH in req.url and req.method == "POST":
+                    submitted["v"] = True
+            except Exception:
+                pass
+        page.on("request", _mark_submitted)
         try:
             with page.expect_response(
                 lambda r: INSTANT_ORDER_PATH in r.url and r.request.method == "POST",
@@ -1016,7 +1040,7 @@ class PlaywrightSession:
                     except Exception:
                         return _ui_reject(body, base,
                                           f"could not click confirm: {click_err}",
-                                          page.url)
+                                          page.url, order_submitted=submitted["v"])
                 # andX may pop a second-stage confirm dialog — click any
                 # primary CTA in a visible dialog if one shows up.
                 try:
@@ -1038,8 +1062,13 @@ class PlaywrightSession:
             return _ui_reject(
                 body, base,
                 f"no instant_order POST captured ({e}) — diag: {diag}",
-                page.url,
+                page.url, order_submitted=submitted["v"],
             )
+        finally:
+            try:
+                page.remove_listener("request", _mark_submitted)
+            except Exception:
+                pass
 
         # Parse the captured response.
         http = resp.status
@@ -1241,14 +1270,23 @@ def _ui_diag(page, confirm_re) -> dict:
     return out
 
 
-def _ui_reject(body: dict, base: str, error: str, url: str) -> "PWOrderResult":
-    """Build a uniform UI-route rejection result."""
+def _ui_reject(body: dict, base: str, error: str, url: str,
+               order_submitted: bool = False) -> "PWOrderResult":
+    """Build a uniform UI-route rejection result.
+
+    `order_submitted` records whether the instant_order POST actually left
+    the browser. When False, the caller may safely retry (nothing was placed);
+    when True, it must NOT retry (the order may have gone through)."""
+    timed_out = "no instant_order POST captured" in (error or "")
     return PWOrderResult(
         ok=False, route=OrderRoute.UI,
         http_status=None, order_id=None,
         filled_qty=0.0, filled_price=0.0,
         status="rejected", error=error,
-        raw={"url": url, "base": base}, sent_body=body,
+        raw={"url": url, "base": base,
+             "timed_out": timed_out,
+             "order_submitted": order_submitted},
+        sent_body=body,
     )
 
 
