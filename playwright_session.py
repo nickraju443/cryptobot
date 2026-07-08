@@ -865,6 +865,12 @@ class PlaywrightSession:
         from playwright.sync_api import Error as PWError
         buy = body.get("buy_currency_code", "").upper()
         sell = body.get("sell_currency_code", "").upper()
+        # andX's instant-trade box is the amount you PAY (the "Spent Amount").
+        # For a BUY you pay USDT  -> fill sell_amount (the USDT notional, ~$ size).
+        # For a SELL you pay the coin -> fill sell_amount (the coin quantity).
+        # In BOTH cases that is `sell_amount`. Filling buy_amount on a buy would
+        # type the COIN COUNT (millions, for a cheap coin) into the USDT box and
+        # andX reads it as spending millions of USDT -> "Insufficient balance".
         if buy == QUOTE_ASSET:
             base = sell
             side_word = "sell"
@@ -872,7 +878,7 @@ class PlaywrightSession:
         else:
             base = buy
             side_word = "buy"
-            amount_str = body.get("buy_amount")
+            amount_str = body.get("sell_amount")
 
         target_url = INSTANT_TRADE_URL_TMPL.format(base=base)
         try:
@@ -918,8 +924,9 @@ class PlaywrightSession:
                         float(body["sell_amount"]) * page_price)
             except Exception:
                 pass
-            amount_str = (body["buy_amount"] if side_word == "buy"
-                          else body["sell_amount"])
+            # Always the amount you PAY = sell_amount (USDT for a buy, coin for
+            # a sell). Never buy_amount on a buy — that is the coin count.
+            amount_str = body["sell_amount"]
 
         # andX's tab + button labels use the currency you're RECEIVING under
         # the CURRENTLY-ACTIVE side. So the label for the same tab differs
