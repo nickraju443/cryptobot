@@ -92,7 +92,10 @@ BALANCE_PATH = "/p/v1/account/balance/"
 
 DEFAULT_NAV_TIMEOUT_MS = 20_000
 DEFAULT_ACTION_TIMEOUT_MS = 8_000
-REQUEST_QUEUE_TIMEOUT_S = 45.0  # UI-route order placement (nav → form fill →
+REQUEST_QUEUE_TIMEOUT_S = 80.0  # UI-route order placement (nav → swap toggle →
+                                # form fill → confirm → 1 price-drift retry)
+                                # needs room for two ~25s attempts. (was 45 →
+                                # sells timed out at ~50s mid-retry.)
                                 # confirm modal → server confirmation) takes
                                 # 15-30s in practice. 18s was failing every
                                 # order; 45s gives them room to actually
@@ -806,13 +809,13 @@ class PlaywrightSession:
         # times pushes the order through. This is safe to retry: 1210 means andX
         # explicitly did NOT execute, so there's no risk of a double fill.
         res = self._order_via_ui(page, ctx, body)
-        drift_tries = 0
-        while (not res.ok and res.http_status == 200
-               and (res.raw or {}).get("status_code") == 1210
-               and drift_tries < 4):
-            drift_tries += 1
+        # One retry on price-drift — more than that blows the request-queue
+        # time budget (each attempt is ~25s). The exit monitor re-attempts on
+        # its next cycle anyway, so a single in-order retry is enough.
+        if (not res.ok and res.http_status == 200
+                and (res.raw or {}).get("status_code") == 1210):
             logger.info(f"playwright_session: 1210 price-drift; refill + retry "
-                        f"{drift_tries}/4 for {body.get('market_code', '?')}")
+                        f"for {body.get('market_code', '?')}")
             res = self._order_via_ui(page, ctx, body)
         # SAFE retry: the click never fired the order POST (order_submitted
         # False) and it timed out, so NOTHING was placed — re-attempt up to 2x
