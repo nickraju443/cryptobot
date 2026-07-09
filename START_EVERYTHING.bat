@@ -120,8 +120,16 @@ echo.
 
 start "" /min cmd /c "timeout /t 12 /nobreak >nul & start http://localhost:5002"
 
+REM ---- Self-healing run loop: if the bot ever exits (crash, price-feed
+REM hiccup, etc.) it relaunches automatically after 5s, so it keeps trading
+REM 24/7. To STOP the bot on purpose, close this window (the X) or press
+REM Ctrl+C twice — that ends the loop.
+:runloop
 "%PYEXE%" app.py
-
 echo.
-echo  Bot has stopped. Press any key to close.
-pause >nul
+echo  ============================================================
+echo   Bot stopped at %date% %time%.  Auto-restarting in 5s...
+echo   (To stop for good: close this window now.)
+echo  ============================================================
+timeout /t 5 /nobreak >nul
+goto runloop
