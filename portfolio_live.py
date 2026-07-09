@@ -549,6 +549,13 @@ def get_portfolio_summary() -> dict:
         if entries:
             tot_qty = sum(e["qty"] for e in entries) or 1.0
             avg_cost = sum(e["price"] * e["qty"] for e in entries) / tot_qty
+            # CRITICAL: a position the bot OPENED can always be CLOSED by the
+            # bot — the same browser execution path that bought it can sell it.
+            # The REST top-volume check above wrongly flags browser-bought coins
+            # (AAVE, DOT, GRT, ...) as non-tradable, which makes the exit monitor
+            # SKIP them so they never sell and cash stays stuck. If we have our
+            # own entry for it, it IS tradable for exit. Full stop.
+            tradable = True
         else:
             avg_cost = mark_price
 
