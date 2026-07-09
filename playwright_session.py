@@ -811,13 +811,9 @@ class PlaywrightSession:
         # retry: the order may have gone through and a retry would double-buy.
         elif (not res.ok and (res.raw or {}).get("timed_out")
               and not (res.raw or {}).get("order_submitted")):
-            for attempt in (1, 2):
-                logger.info(f"playwright_session: order POST never fired — "
-                            f"safe retry {attempt}/2 for "
-                            f"{body.get('market_code', '?')}")
-                res = self._order_via_ui(page, ctx, body)
-                if res.ok or (res.raw or {}).get("order_submitted"):
-                    break
+            logger.info(f"playwright_session: order POST never fired — "
+                        f"safe retry for {body.get('market_code', '?')}")
+            res = self._order_via_ui(page, ctx, body)
         return res
 
     def _order_via_fetch(self, page, body: dict) -> PWOrderResult:
@@ -867,18 +863,22 @@ class PlaywrightSession:
         sell = body.get("sell_currency_code", "").upper()
         # andX's instant-trade box is the amount you PAY (the "Spent Amount").
         # For a BUY you pay USDT  -> fill sell_amount (the USDT notional, ~$ size).
-        # For a SELL you pay the coin -> fill sell_amount (the coin quantity).
-        # In BOTH cases that is `sell_amount`. Filling buy_amount on a buy would
-        # type the COIN COUNT (millions, for a cheap coin) into the USDT box and
-        # andX reads it as spending millions of USDT -> "Insufficient balance".
+        # andX's Instant-trade box is ALWAYS denominated in USDT (confirmed by
+        # inspecting the live form: both "Instant USDT Buy" and "Instant USDT
+        # Sell" show "Spent Amount: USDT"). So we always fill the USDT side of
+        # the swap:
+        #   BUY  → the USDT you SPEND    = sell_amount  (USDT is sell_currency)
+        #   SELL → the USDT you RECEIVE  = buy_amount   (USDT is buy_currency)
+        # Filling the COIN quantity is the bug that made buys read as $millions
+        # and sells read as ~$0 (below minimum) — both never fire an order.
         if buy == QUOTE_ASSET:
             base = sell
             side_word = "sell"
-            amount_str = body.get("sell_amount")
+            amount_str = body.get("buy_amount")   # USDT you receive
         else:
             base = buy
             side_word = "buy"
-            amount_str = body.get("sell_amount")
+            amount_str = body.get("sell_amount")  # USDT you spend
 
         target_url = INSTANT_TRADE_URL_TMPL.format(base=base)
         try:
@@ -924,9 +924,9 @@ class PlaywrightSession:
                         float(body["sell_amount"]) * page_price)
             except Exception:
                 pass
-            # Always the amount you PAY = sell_amount (USDT for a buy, coin for
-            # a sell). Never buy_amount on a buy — that is the coin count.
-            amount_str = body["sell_amount"]
+            # Fill the USDT side: buy spends sell_amount USDT, sell receives
+            # buy_amount USDT. (The box is USDT-denominated on both tabs.)
+            amount_str = body["sell_amount"] if side_word == "buy" else body["buy_amount"]
 
         # andX's tab + button labels use the currency you're RECEIVING under
         # the CURRENTLY-ACTIVE side. So the label for the same tab differs
@@ -1036,7 +1036,7 @@ class PlaywrightSession:
         try:
             with page.expect_response(
                 lambda r: INSTANT_ORDER_PATH in r.url and r.request.method == "POST",
-                timeout=35_000,
+                timeout=18_000,
             ) as resp_info:
                 try:
                     confirm_btn.click(timeout=3000)
