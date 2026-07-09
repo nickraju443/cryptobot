@@ -1236,7 +1236,7 @@ async function refresh(){
         <td>${sl}</td>
         <td>${tp}</td>
         <td>${tradable}</td>
-        <td>${pos.tradable !== false ? `<button onclick="sellOne('${sym}')">close</button>` : ''}</td>
+        <td><button onclick="sellOne('${sym}')">close</button></td>
       </tr>`;
     });
 
@@ -1334,9 +1334,54 @@ async function refresh(){
   } catch(e){}
 }
 
-window.sellOne = function(sym){
-  if (!confirm('Close ' + sym + '?')) return;
-  POST('/api/trader/sell_one', {symbol: sym});
+// Floating status banner so the user SEES the close working (andX sells take
+// 30-80s and can be rejected — fire-and-forget hid all of that).
+function sellBanner(msg, kind){
+  let b = document.getElementById('sell-banner');
+  if (!b){
+    b = document.createElement('div');
+    b.id = 'sell-banner';
+    b.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;'
+      + 'padding:12px 18px;border-radius:8px;font-size:14px;font-weight:600;max-width:90vw;'
+      + 'box-shadow:0 4px 20px rgba(0,0,0,.35);text-align:center';
+    document.body.appendChild(b);
+  }
+  const colors = {work:'#c98a00', ok:'#0a7d34', err:'#b91c1c'};
+  b.style.background = colors[kind] || '#333';
+  b.style.color = '#fff';
+  b.textContent = msg;
+  b.style.display = 'block';
+  if (kind !== 'work'){
+    clearTimeout(b._t);
+    b._t = setTimeout(()=>{ b.style.display = 'none'; }, 9000);
+  }
+}
+
+window._sellingNow = window._sellingNow || {};
+window.sellOne = async function(sym){
+  if (window._sellingNow[sym]) return;           // already in flight
+  if (!confirm('Close ' + sym + ' — sell the ENTIRE position on andX right now?')) return;
+  window._sellingNow[sym] = true;
+  sellBanner('Selling ' + sym + ' on andX… this can take up to a minute — do not close the andX window.', 'work');
+  try {
+    // andX sells can take up to ~80s (nav + swap + confirm + one price retry)
+    const r = await POST('/api/trader/sell_one', {symbol: sym});
+    if (r && (r.status === 'submitted' || r.order_id) && r.action === 'SELL'){
+      sellBanner('✓ Sold ' + sym + ' — order #' + (r.order_id||'?') + ', '
+        + fmtQty(r.qty) + ' @ ' + fmt(r.price, 6) + '  |  P&L ' + fmtMoney(r.pnl)
+        + ' (' + fmt(r.pnl_pct, 2) + '%)', 'ok');
+    } else {
+      let reason = (r && (r.error || r.reason)) ? (r.error || r.reason) : 'unknown error';
+      if (/price has changed/i.test(reason))
+        reason = 'andX rejected: price moved too fast. Click close again — it usually lands on a calmer tick.';
+      sellBanner('✗ ' + sym + ' NOT closed — ' + reason, 'err');
+    }
+  } catch(e){
+    sellBanner('✗ ' + sym + ' close failed: ' + e, 'err');
+  } finally {
+    delete window._sellingNow[sym];
+    refresh();
+  }
 };
 
 refresh();
