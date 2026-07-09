@@ -799,18 +799,27 @@ class PlaywrightSession:
             elif res.http_status is None:
                 logger.info(f"playwright_session: fetch route returned no status "
                             f"({res.error}); trying UI fallback")
-        # Route 2 — UI with one auto-retry on price-drift.
+        # Route 2 — UI with auto-retry on price-drift. andX's instant order has
+        # a tight price tolerance and rejects with status_code 1210 ("Price has
+        # changed too much") when the market ticks between our read and submit.
+        # Each _order_via_ui re-reads the live page price, so retrying a few
+        # times pushes the order through. This is safe to retry: 1210 means andX
+        # explicitly did NOT execute, so there's no risk of a double fill.
         res = self._order_via_ui(page, ctx, body)
-        if (not res.ok and res.http_status == 200
-                and (res.raw or {}).get("status_code") == 1210):
-            logger.info("playwright_session: 1210 price-drift; refilling + retry")
+        drift_tries = 0
+        while (not res.ok and res.http_status == 200
+               and (res.raw or {}).get("status_code") == 1210
+               and drift_tries < 4):
+            drift_tries += 1
+            logger.info(f"playwright_session: 1210 price-drift; refill + retry "
+                        f"{drift_tries}/4 for {body.get('market_code', '?')}")
             res = self._order_via_ui(page, ctx, body)
         # SAFE retry: the click never fired the order POST (order_submitted
         # False) and it timed out, so NOTHING was placed — re-attempt up to 2x
         # to convert andX's flaky UI into a fill. If a POST DID fire we do NOT
         # retry: the order may have gone through and a retry would double-buy.
-        elif (not res.ok and (res.raw or {}).get("timed_out")
-              and not (res.raw or {}).get("order_submitted")):
+        if (not res.ok and (res.raw or {}).get("timed_out")
+                and not (res.raw or {}).get("order_submitted")):
             logger.info(f"playwright_session: order POST never fired — "
                         f"safe retry for {body.get('market_code', '?')}")
             res = self._order_via_ui(page, ctx, body)
@@ -1017,8 +1026,14 @@ class PlaywrightSession:
         # If the tab click failed (tab_clicked=False) the page may still be
         # on the prior side — either label is acceptable; the response
         # interception below will tell us if a real order was submitted.
-        confirm_label = side_label_a if tab_clicked else side_label_b
-        confirm_re = _re_icase(f"{confirm_label} {side_word} confirmation")
+        # The confirm button's currency prefix follows the amount-box
+        # denomination we toggled to — "USDT Buy Confirmation", but
+        # "<COIN> Sell Confirmation" when the sell box is in coin mode. So we
+        # match ANY "<ccy> <side> confirmation" rather than hard-coding the
+        # currency (which was why sells couldn't find their confirm button).
+        import re as _re_mod
+        confirm_re = _re_mod.compile(rf"{side_word}\s+confirmation",
+                                     _re_mod.IGNORECASE)
         try:
             confirm_btn = page.get_by_role(
                 "button", name=confirm_re
