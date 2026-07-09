@@ -863,22 +863,21 @@ class PlaywrightSession:
         sell = body.get("sell_currency_code", "").upper()
         # andX's instant-trade box is the amount you PAY (the "Spent Amount").
         # For a BUY you pay USDT  -> fill sell_amount (the USDT notional, ~$ size).
-        # andX's Instant-trade box is ALWAYS denominated in USDT (confirmed by
-        # inspecting the live form: both "Instant USDT Buy" and "Instant USDT
-        # Sell" show "Spent Amount: USDT"). So we always fill the USDT side of
-        # the swap:
-        #   BUY  → the USDT you SPEND    = sell_amount  (USDT is sell_currency)
-        #   SELL → the USDT you RECEIVE  = buy_amount   (USDT is buy_currency)
-        # Filling the COIN quantity is the bug that made buys read as $millions
-        # and sells read as ~$0 (below minimum) — both never fire an order.
+        # andX's amount box has a swap toggle (img alt="swap icon") that flips
+        # it between the COIN and USDT. The DEFAULT side is wrong for us — BUY
+        # defaults to the coin, SELL defaults to USDT — so before filling we
+        # press the toggle to the side we're going to type, then fill the
+        # matching value (which is `sell_amount` in BOTH cases):
+        #   BUY  → toggle to USDT,  fill sell_amount (= the USDT you spend)
+        #   SELL → toggle to <coin>, fill sell_amount (= the coin qty you sell)
         if buy == QUOTE_ASSET:
             base = sell
             side_word = "sell"
-            amount_str = body.get("buy_amount")   # USDT you receive
+            amount_str = body.get("sell_amount")   # coin qty (toggle set to coin)
         else:
             base = buy
             side_word = "buy"
-            amount_str = body.get("sell_amount")  # USDT you spend
+            amount_str = body.get("sell_amount")   # USDT amount (toggle set to USDT)
 
         target_url = INSTANT_TRADE_URL_TMPL.format(base=base)
         try:
@@ -924,9 +923,9 @@ class PlaywrightSession:
                         float(body["sell_amount"]) * page_price)
             except Exception:
                 pass
-            # Fill the USDT side: buy spends sell_amount USDT, sell receives
-            # buy_amount USDT. (The box is USDT-denominated on both tabs.)
-            amount_str = body["sell_amount"] if side_word == "buy" else body["buy_amount"]
+            # sell_amount is the value that matches the toggled side: for a BUY
+            # it's the USDT to spend, for a SELL it's the coin quantity to sell.
+            amount_str = body["sell_amount"]
 
         # andX's tab + button labels use the currency you're RECEIVING under
         # the CURRENTLY-ACTIVE side. So the label for the same tab differs
@@ -960,6 +959,16 @@ class PlaywrightSession:
         # Wait for the form to settle after clicking the side tab — MUI
         # re-renders the input fields when switching Buy/Sell.
         time.sleep(1.2)
+
+        # Toggle the amount box to the currency we're about to type. andX
+        # defaults to the WRONG side (BUY→coin, SELL→USDT); the swap icon flips
+        # it. BUY types USDT, SELL types the coin. Without this the amount is
+        # read in the wrong unit and the order silently never fires.
+        want_ccy = QUOTE_ASSET if side_word == "buy" else base
+        if not _ensure_spent_currency(page, want_ccy):
+            logger.warning(f"playwright_session: could not set amount box to "
+                           f"{want_ccy} on {base}; filling anyway")
+        time.sleep(0.4)
 
         # Amount input is `<input type=text placeholder="Enter amount">`.
         # On the instant trade page there are TWO such inputs: the active
@@ -1209,6 +1218,39 @@ def _parse_usdt_balance(raw: Any) -> tuple[float, float]:
             pass
         break
     return free, total
+
+
+def _read_spent_currency(page) -> str:
+    """The currency the Instant-trade amount box is denominated in right now,
+    read from the 'Spent Amount: <CCY>' label. '' if not found."""
+    import re
+    try:
+        m = re.search(r"Spent Amount[:\s]*([A-Za-z0-9]+)",
+                      page.inner_text("body", timeout=1500))
+        return m.group(1) if m else ""
+    except Exception:
+        return ""
+
+
+def _ensure_spent_currency(page, want: str, max_tries: int = 3) -> bool:
+    """Press andX's swap-coin toggle until the amount box is denominated in
+    `want` (either the coin or 'USDT'). The toggle is the icon button holding
+    <img alt="swap icon">. Returns True once the box shows `want`."""
+    want = (want or "").upper()
+    swap = page.locator("button:has(img[alt='swap icon'])").first
+    for _ in range(max_tries):
+        cur = _read_spent_currency(page).upper()
+        if cur and cur == want:
+            return True
+        try:
+            swap.click(timeout=1500)
+        except Exception:
+            try:
+                swap.dispatch_event("click")
+            except Exception:
+                return False
+        page.wait_for_timeout(700)
+    return _read_spent_currency(page).upper() == want
 
 
 def _read_page_price(page) -> float:
