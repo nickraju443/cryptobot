@@ -1875,6 +1875,70 @@ def _scan_loop():
         trader["stop_event"].wait(sp["interval"])
 
 
+def _session_watchdog():
+    """Keeps the andX browser session alive so the bot only needs to be
+    started ONCE.
+
+    THE BUG THIS FIXES: when the andX browser session drops (token expiry,
+    the andX tab reloading/navigating, or a stale CDP page handle), every
+    order and every exit silently returned 'rejected' forever — the bot
+    would trade once on startup, then never buy or sell again until the
+    whole process was killed and restarted. Nothing re-probed or
+    reconnected the session on its own.
+
+    This watchdog runs for the life of the trader: every interval it checks
+    the session state and, if it's not LOGGED_IN, tells the session to
+    self-heal (reconnect CDP → re-resolve the andX page → re-probe login).
+    Only active when the bot is configured for browser execution."""
+    exec_mode = os.environ.get("HYBRID_EXEC", "").strip().lower()
+    if exec_mode != "andx_browser":
+        return  # REST-only routing needs no browser session to babysit
+    try:
+        from playwright_session import get_session, SessionState
+    except Exception as e:
+        _tlog("err", f"session watchdog: cannot import session ({e})")
+        return
+    interval = float(os.environ.get("PW_WATCHDOG_INTERVAL_S", "30"))
+    headless = os.environ.get("ANDX_PW_HEADLESS", "0") == "1"
+    last_state = None
+    # brief grace so we don't fight the initial autostart/login
+    trader["stop_event"].wait(15)
+    while not trader["stop_event"].is_set():
+        try:
+            sess = get_session()
+            st = sess.status().state
+            if st == SessionState.STOPPED:
+                _tlog("session", "andX session STOPPED — restarting browser session")
+                try:
+                    sess.start(headless=headless)
+                except Exception as e:
+                    _tlog("err", f"session watchdog restart failed: {e}")
+            elif st in (SessionState.LOGGED_OUT, SessionState.EXPIRED, SessionState.ERROR):
+                if st != last_state:
+                    _tlog("session", f"andX session {st.value} — auto-recovering")
+                new = sess.recover(timeout_s=25.0)
+                if new.state in (SessionState.EXPIRED, SessionState.ERROR):
+                    # soft heal couldn't reconnect (worker/browser truly gone)
+                    # — hard-cycle the session so we come back without a
+                    # process restart.
+                    _tlog("session", "soft recover failed — hard-restarting session")
+                    try:
+                        sess.stop()
+                    except Exception:
+                        pass
+                    try:
+                        sess.start(headless=headless)
+                    except Exception as e:
+                        _tlog("err", f"session hard restart failed: {e}")
+                elif new.state == SessionState.LOGGED_IN and last_state != SessionState.LOGGED_IN:
+                    _tlog("session", "andX session RECOVERED — live trading back online")
+            st = sess.status().state
+            last_state = st
+        except Exception as e:
+            _tlog("err", f"session watchdog: {e}")
+        trader["stop_event"].wait(interval)
+
+
 def _check_auto_tp():
     with trader_lock:
         enabled = trader["auto_tp_enabled"]
@@ -2117,6 +2181,7 @@ def api_start():
     threading.Thread(target=_exit_loop, daemon=True, name="exit_loop").start()
     threading.Thread(target=_scan_loop, daemon=True, name="scan_loop").start()
     threading.Thread(target=_price_stream_loop, daemon=True, name="price_stream").start()
+    threading.Thread(target=_session_watchdog, daemon=True, name="session_watchdog").start()
     # Auto-start the ANDX1 0%-fee scalp engine — UNLESS the active mode opts
     # out via skip_andx1_engine. SNIPER opts out because its conviction-trade
     # strategy contradicts the engine's HFT-volume play; running both at once

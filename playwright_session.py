@@ -413,6 +413,24 @@ class PlaywrightSession:
         self._set_state(SessionState.STOPPED)
         self._started_at = None
 
+    def recover(self, timeout_s: float = 30.0) -> PWStatus:
+        """Force the worker to self-heal a dropped session: reconnect CDP,
+        re-resolve the andX page, re-probe login. Safe to call anytime — the
+        app watchdog calls this on a timer so the bot only needs to be
+        started ONCE. No-op if the worker isn't running (let start() handle
+        a cold session)."""
+        st = self._get_state()
+        if st in (SessionState.STOPPED, SessionState.STARTING):
+            return self.status()
+        if self._worker is None or not self._worker.is_alive():
+            # worker thread is gone — a fresh start() is the only recovery
+            self._set_state(SessionState.EXPIRED, "worker not alive")
+            return self.status()
+        req = _Req(kind="recover")
+        self._queue.put(req)
+        req.event.wait(timeout_s)
+        return self.status()
+
     def wipe_profile(self) -> None:
         if self._get_state() != SessionState.STOPPED:
             raise PlaywrightSessionError("stop() before wiping the profile")
@@ -550,6 +568,29 @@ class PlaywrightSession:
                 req.event.set()
                 break
 
+            if req.kind == "recover":
+                browser, ctx, page = self._recover_page(pw, browser, ctx, page)
+                req.result = {"state": self._get_state().value}
+                req.event.set()
+                last_keepalive = time.time()
+                continue
+
+            # SELF-HEAL pre-flight: before doing real work, make sure the page
+            # is alive and we're logged in. A dropped andX session (token
+            # expiry, tab reload, stale CDP handle) used to make every order
+            # fail silently forever until a manual restart — this recovers it.
+            if req.kind in ("order", "balance", "probe"):
+                page_dead = False
+                try:
+                    page_dead = page is None or page.is_closed()
+                except Exception:
+                    page_dead = True
+                st_now = self._get_state()
+                if page_dead or st_now in (
+                    SessionState.LOGGED_OUT, SessionState.EXPIRED, SessionState.ERROR,
+                ):
+                    browser, ctx, page = self._recover_page(pw, browser, ctx, page)
+
             try:
                 if req.kind == "probe":
                     force = bool((req.payload or {}).get("force_refresh"))
@@ -574,12 +615,19 @@ class PlaywrightSession:
             except SessionExpiredError as e:
                 self._set_state(SessionState.EXPIRED, str(e))
                 req.error = e
+                # heal now so the NEXT request isn't dead too
+                browser, ctx, page = self._recover_page(pw, browser, ctx, page)
             except Exception as e:
-                # If the browser died, surface it explicitly.
+                # If the browser/page died, surface it AND try to heal so the
+                # loop isn't permanently wedged on a stale handle.
                 msg = str(e)
-                if "Target closed" in msg or "Connection closed" in msg or "browser closed" in msg.lower():
+                low = msg.lower()
+                if ("target closed" in low or "connection closed" in low
+                        or "browser closed" in low or "has been closed" in low
+                        or "target page, context or browser" in low):
                     self._set_state(SessionState.ERROR, f"browser died: {msg}")
                     req.error = BrowserCrashedError(msg)
+                    browser, ctx, page = self._recover_page(pw, browser, ctx, page)
                 else:
                     req.error = e
             finally:
@@ -605,6 +653,95 @@ class PlaywrightSession:
                 pw.stop()
         except Exception:
             pass
+
+    # --- self-heal (run on worker thread only) -----------------------
+
+    def _find_andx_page(self, browser):
+        """CDP mode: locate a LIVE andX page/context on the attached Chrome.
+        The page handle we captured at startup goes stale whenever the user's
+        andX tab reloads, navigates, or is closed — so we re-resolve it on
+        demand. Returns (ctx, page) or (None, None)."""
+        try:
+            # 1) prefer a live tab already on andX
+            for c in browser.contexts:
+                for p in c.pages:
+                    try:
+                        if not p.is_closed() and "andx.one" in (p.url or "").lower():
+                            return c, p
+                    except Exception:
+                        continue
+            # 2) any live tab (we'll navigate it to andX)
+            for c in browser.contexts:
+                for p in c.pages:
+                    try:
+                        if not p.is_closed():
+                            return c, p
+                    except Exception:
+                        continue
+            # 3) no live page at all — open one in the first context
+            if browser.contexts:
+                c = browser.contexts[0]
+                return c, c.new_page()
+        except Exception as e:
+            logger.warning(f"pw _find_andx_page: {e}")
+        return None, None
+
+    def _recover_page(self, pw, browser, ctx, page):
+        """Re-establish a usable, logged-in page after a session drop.
+        Best-effort — never raises. Returns refreshed (browser, ctx, page)
+        and sets the session state. This is what makes a dropped andX
+        session recover WITHOUT a full process restart."""
+        cdp_url = os.environ.get("ANDX_PW_CDP_URL", "").strip()
+        try:
+            if cdp_url:
+                # Is the CDP connection still alive? Reconnect if not.
+                alive = False
+                try:
+                    alive = browser is not None and browser.is_connected()
+                except Exception:
+                    alive = False
+                if not alive:
+                    try:
+                        browser = pw.chromium.connect_over_cdp(cdp_url)
+                        logger.info("pw recover: reconnected CDP")
+                    except Exception as e:
+                        self._set_state(SessionState.EXPIRED, f"cdp reconnect failed: {e}")
+                        return browser, ctx, page
+                new_ctx, new_page = self._find_andx_page(browser)
+                if new_page is not None:
+                    ctx, page = new_ctx, new_page
+                    try:
+                        ctx.set_default_navigation_timeout(self.nav_timeout_ms)
+                        ctx.set_default_timeout(self.action_timeout_ms)
+                    except Exception:
+                        pass
+            else:
+                # persistent-context mode: recreate the page if it died
+                try:
+                    if page is None or page.is_closed():
+                        page = ctx.new_page()
+                        page.set_default_navigation_timeout(self.nav_timeout_ms)
+                except Exception:
+                    pass
+            # Nudge back to andX if we drifted off, then re-probe login.
+            try:
+                cur = (page.url or "").lower()
+                if "andx.one" not in cur:
+                    page.goto(HOME_URL, wait_until="domcontentloaded")
+                    time.sleep(0.8)
+            except Exception:
+                pass
+            try:
+                if _probe_logged_in(page):
+                    self._set_state(SessionState.LOGGED_IN)
+                    logger.info("pw recover: session healthy (LOGGED_IN)")
+                else:
+                    self._set_state(SessionState.LOGGED_OUT)
+            except Exception:
+                pass
+        except Exception as e:
+            logger.warning(f"pw _recover_page failed: {e}")
+        return browser, ctx, page
 
     # --- handlers (run on worker thread only) ------------------------
 
